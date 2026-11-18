@@ -1,0 +1,2279 @@
+<!DOCTYPE html>
+<html lang="vi" class="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Duydudi • AI Agent Phân Tích Tiến Độ Cơ Hội &amp; Dự Báo Doanh Số</title>
+  
+  <!-- Tailwind CSS & Google Fonts -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'Inter', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            chrome: {
+              tabLight: '#dee1e6',
+              tabHoverLight: '#e8eaed',
+              tabActiveLight: '#ffffff',
+              barLight: '#f1f3f4',
+              tabDark: '#202124',
+              tabHoverDark: '#292a2d',
+              tabActiveDark: '#35363a',
+              barDark: '#202124',
+              omniboxLight: '#f1f3f4',
+              omniboxDark: '#202124',
+            },
+            duydudi: {
+              blue: '#1d4ed8',
+              cyan: '#00d2ff',
+              indigo: '#4f46e5',
+              navy: '#14214d',
+              pink: '#ff4d79',
+              rose: '#f43f5e',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      margin: 0;
+      padding: 0;
+      transition: background-color 0.25s ease, color 0.25s ease;
+    }
+
+    .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 6px; }
+    .dark .custom-scroll::-webkit-scrollbar-thumb { background: #475569; }
+
+    /* Hiệu ứng chuyển cảnh mượt mà */
+    .screen-view {
+      transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .screen-hidden {
+      display: none !important;
+      opacity: 0;
+      transform: scale(0.99);
+      pointer-events: none;
+    }
+    .screen-active {
+      display: flex !important;
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    /* Phong cách Tab Google Chrome bo tròn tinh tế */
+    .chrome-tab {
+      border-top-left-radius: 10px;
+      border-top-right-radius: 10px;
+      transition: background-color 0.15s ease, color 0.15s ease;
+      cursor: pointer;
+      user-select: none;
+      position: relative;
+    }
+    .chrome-tab.active-light {
+      background-color: #ffffff;
+      color: #1e293b;
+      box-shadow: 0 -1px 4px rgba(0, 0, 0, 0.05);
+    }
+    .dark .chrome-tab.active-dark {
+      background-color: #35363a;
+      color: #f8fafc;
+      box-shadow: 0 -1px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Hiệu ứng xung nhịp & ánh sáng lướt cho nút BẮT ĐẦU (Tông Xanh Indigo tối giản) */
+    @keyframes pulse-blue-ring {
+      0% { transform: scale(0.99); box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.55); }
+      70% { transform: scale(1.02); box-shadow: 0 0 0 18px rgba(37, 99, 235, 0); }
+      100% { transform: scale(0.99); box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
+    }
+    .btn-start-hero {
+      animation: pulse-blue-ring 2.4s infinite cubic-bezier(0.45, 0, 0.55, 1);
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-start-hero::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: -120%;
+      width: 60%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.28), transparent);
+      transform: skewX(-20deg);
+      animation: shimmer-sweep 3.2s infinite;
+    }
+    @keyframes shimmer-sweep {
+      0% { left: -120%; }
+      60%, 100% { left: 160%; }
+    }
+    .btn-start-hero:hover {
+      animation: none;
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 16px 32px -6px rgba(37, 99, 235, 0.45);
+    }
+
+    /* Hiệu ứng chuyển động nền sinh động trên Trang Bìa */
+    @keyframes float-orb-1 {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(28px, -24px) scale(1.08); }
+    }
+    @keyframes float-orb-2 {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(-24px, 26px) scale(1.06); }
+    }
+    @keyframes fade-up-enter {
+      from { opacity: 0; transform: translateY(18px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .orb-animate-1 { animation: float-orb-1 8s ease-in-out infinite; }
+    .orb-animate-2 { animation: float-orb-2 10s ease-in-out infinite; }
+    .fade-up-1 { animation: fade-up-enter 0.6s ease-out forwards; }
+    .fade-up-2 { animation: fade-up-enter 0.8s ease-out forwards; }
+    .fade-up-3 { animation: fade-up-enter 1.0s ease-out forwards; }
+
+    .cover-grid-pattern {
+      background-image: radial-gradient(rgba(37, 99, 235, 0.10) 1px, transparent 1px);
+      background-size: 28px 28px;
+    }
+    .dark .cover-grid-pattern {
+      background-image: radial-gradient(rgba(148, 163, 184, 0.10) 1px, transparent 1px);
+    }
+
+    /* Bo góc chuẩn Studio Canvas */
+    .studio-canvas {
+      border-radius: 24px;
+    }
+  </style>
+</head>
+<body class="bg-[#f8fafc] dark:bg-[#0f172a] text-slate-800 dark:text-slate-100 min-h-screen flex flex-col justify-between selection:bg-blue-600 selection:text-white">
+
+  <!-- ========================================================================= -->
+  <!-- THANH ĐIỀU HƯỚNG TỐI GIẢN (KHÔNG ICON RƯỜM RÀ, ÍT MÀU)                     -->
+  <!-- ========================================================================= -->
+  <header class="w-full bg-[#e2e8f0] dark:bg-[#1e293b] border-b border-slate-300 dark:border-slate-800 sticky top-0 z-50 select-none">
+    
+    <!-- HÀNG 1: TAB BAR -->
+    <div class="px-4 pt-2 flex items-center justify-between gap-2 overflow-x-auto custom-scroll">
+      
+      <div class="flex items-center gap-2">
+        <div class="flex items-end gap-1">
+          <!-- Tab 1: Trang Bìa -->
+          <div id="tabNavCover" onclick="switchMainScreen('cover')" class="chrome-tab active-light dark:active-dark px-5 py-2 flex items-center text-xs font-bold text-slate-800 dark:text-slate-100">
+            <span class="whitespace-nowrap">Duydudi • Trang Bìa</span>
+          </div>
+
+          <!-- Tab 2: Tải Tệp Lên -->
+          <div id="tabNavScreen1" onclick="switchMainScreen('screen1')" class="chrome-tab bg-transparent hover:bg-white/50 dark:hover:bg-white/10 px-5 py-2 flex items-center text-xs font-bold text-slate-600 dark:text-slate-400">
+            <span class="whitespace-nowrap">Tải Tệp Lên</span>
+          </div>
+
+          <!-- Tab 3: Báo Cáo Doanh Số -->
+          <div id="tabNavScreen2" onclick="switchMainScreen('screen2')" class="chrome-tab bg-transparent hover:bg-white/50 dark:hover:bg-white/10 px-5 py-2 flex items-center text-xs font-bold text-slate-600 dark:text-slate-400">
+            <span class="whitespace-nowrap">Báo Cáo Doanh Số</span>
+          </div>
+
+          <!-- Tab 4: 15 Slide Thuyết Trình -->
+          <a href="/slides" target="_blank" class="chrome-tab bg-transparent hover:bg-white/50 dark:hover:bg-white/10 px-5 py-2 flex items-center text-xs font-bold text-blue-700 dark:text-blue-400">
+            <span class="whitespace-nowrap">15 Slide AI Agent</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Khu vực thương hiệu bên phải -->
+      <div class="flex items-center gap-3 pr-2">
+        <div class="flex items-center gap-2 bg-white/60 dark:bg-slate-900/60 px-3 py-1 rounded-full border border-slate-300/70 dark:border-slate-700">
+          <span class="w-2 h-2 rounded-full bg-blue-600"></span>
+          <span class="text-[11px] font-extrabold tracking-wider text-slate-700 dark:text-slate-200 uppercase font-mono">
+            Công ty của Duydudi
+          </span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- HÀNG 2: THANH ĐỊA CHỈ & CHUYỂN ĐỔI SÁNG / TỐI -->
+    <div class="px-4 py-1.5 bg-white dark:bg-[#0f172a] flex items-center justify-between gap-3 border-t border-slate-200 dark:border-slate-800">
+      
+      <div class="flex items-center gap-1 text-slate-500 dark:text-slate-400">
+        <button onclick="switchMainScreen('cover')" title="Trang chủ" class="px-2.5 h-7 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center text-xs font-bold transition">
+          Trang bìa
+        </button>
+        <button onclick="navigateHistoryBack()" title="Quay lại" class="w-7 h-7 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center text-xs font-bold transition">
+          &larr;
+        </button>
+        <button onclick="navigateHistoryForward()" title="Tiếp theo" class="w-7 h-7 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center text-xs font-bold transition">
+          &rarr;
+        </button>
+      </div>
+
+      <!-- Thanh địa chỉ -->
+      <div class="flex-1 max-w-2xl bg-slate-100 dark:bg-slate-800/90 rounded-full px-4 py-1 flex items-center justify-between gap-2 border border-slate-200/80 dark:border-slate-700">
+        <span class="text-xs font-mono font-medium text-slate-600 dark:text-slate-300 truncate">
+          https://duydudi.ai/sales-agent
+        </span>
+        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300">
+          AI Engine Ready
+        </span>
+      </div>
+
+      <!-- NÚT CHUYỂN ĐỔI SÁNG / TỐI -->
+      <div class="flex items-center gap-2">
+        <button onclick="toggleThemeMode()" id="btnThemeToggle" title="Chuyển đổi giao diện Sáng / Tối" 
+                class="px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center gap-1.5 transition border border-slate-200 dark:border-slate-700 cursor-pointer">
+          <span id="themeToggleIcon" class="hidden"></span>
+          <span id="themeToggleLabel">Giao diện: Sáng</span>
+        </button>
+      </div>
+
+    </div>
+
+  </header>
+
+
+  <!-- ========================================================================= -->
+  <!-- MÀN HÌNH 1: TRANG BÌA SINH ĐỘNG & LỜI CHÀO ĐẾN NGƯỜI DÙNG                  -->
+  <!-- ========================================================================= -->
+  <main id="mainScreenCover" class="screen-view screen-active cover-grid-pattern flex-1 flex-col items-center justify-center p-4 sm:p-8 lg:p-14 relative overflow-hidden bg-gradient-to-b from-slate-50 via-blue-50/30 to-white dark:from-[#0f172a] dark:via-[#111c35] dark:to-[#0f172a]">
+    
+    <!-- Hiệu ứng chuyển động nền sinh động (Floating Ambient Orbs) -->
+    <div class="orb-animate-1 absolute -top-24 -left-24 w-96 h-96 bg-blue-500/10 dark:bg-blue-500/15 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="orb-animate-2 absolute -bottom-24 -right-24 w-96 h-96 bg-indigo-500/10 dark:bg-indigo-500/15 rounded-full blur-3xl pointer-events-none"></div>
+
+    <div class="w-full max-w-3xl z-10 text-center space-y-7 my-auto py-8">
+      
+      <!-- HỘP LỜI CHÀO SINH ĐỘNG GỬI ĐẾN NGƯỜI DÙNG -->
+      <div class="fade-up-1 mx-auto max-w-2xl p-5 sm:p-6 rounded-2xl bg-white/90 dark:bg-slate-800/90 backdrop-blur-md border border-slate-200/90 dark:border-slate-700 shadow-sm space-y-2">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-950/80 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 font-bold text-xs">
+          <span class="w-2 h-2 rounded-full bg-blue-600 animate-ping"></span>
+          <span id="coverTimeGreeting">Xin chào quý khách! Chào mừng bạn đến với Công ty của Duydudi</span>
+        </div>
+        <p id="coverDynamicWelcomeText" class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 font-medium leading-relaxed">
+          Chúc bạn một ngày làm việc hiệu quả. Trợ lý AI của chúng tôi luôn sẵn sàng đọc mọi tệp Excel (.xlsx), CSV (.csv) hoặc bảng tính Google Sheets, tự động kiểm tra chất lượng và xuất báo cáo phân tích cho bạn.
+        </p>
+      </div>
+
+      <!-- Tiêu đề chính -->
+      <div class="fade-up-2 space-y-3">
+        <span class="text-xs sm:text-sm font-extrabold tracking-widest text-blue-600 dark:text-blue-400 uppercase block">
+          CÔNG TY CỦA DUYDUDI
+        </span>
+        <h1 class="text-3xl sm:text-5xl lg:text-6xl font-black text-slate-900 dark:text-white tracking-tight leading-tight">
+          Phân Tích Tiến Độ Cơ Hội &amp; Dự Báo Doanh Số
+        </h1>
+        <p class="text-sm sm:text-base text-slate-600 dark:text-slate-300 font-medium max-w-xl mx-auto leading-relaxed">
+          Hệ thống tự động đọc dữ liệu đa nguồn, phát hiện và sửa lỗi dữ liệu bằng AI, giúp bạn có ngay bản báo cáo doanh số chính xác chỉ sau vài giây.
+        </p>
+      </div>
+
+      <!-- NÚT BẮT ĐẦU TRUNG TÂM -->
+      <div class="fade-up-3 pt-2 flex flex-col items-center justify-center space-y-3">
+        <button id="btnStartHero" onclick="switchMainScreen('screen1')" 
+                class="btn-start-hero px-14 py-4 sm:py-5 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-black text-lg sm:text-xl tracking-wider uppercase shadow-lg transition-all duration-300 flex items-center justify-center gap-3 cursor-pointer">
+          <span>BẮT ĐẦU NGAY</span>
+          <span class="text-xl">&rarr;</span>
+        </button>
+
+        <span class="text-xs font-medium text-slate-400 dark:text-slate-500">
+          Nhấn Bắt đầu để chuyển sang trang tải tệp dữ liệu hoặc dán liên kết Google Sheets
+        </span>
+
+        <!-- Đánh giá uy tín trên trang bìa -->
+        <div class="pt-1 inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/80 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700 text-xs">
+          <span class="flex text-amber-500 font-bold tracking-wider">★★★★★</span>
+          <span class="text-slate-600 dark:text-slate-300 font-medium">
+            <strong class="text-slate-900 dark:text-white font-bold">4.9 / 5.0</strong> • Được tin dùng bởi 28.000+ nhà quản lý
+          </span>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+
+  <!-- ========================================================================= -->
+  <!-- MÀN HÌNH 2: TRANG TẢI TỆP DỮ LIỆU LÊN (ÍT MÀU, KHÔNG ICON THỪA)            -->
+  <!-- ========================================================================= -->
+  <main id="mainScreen1" class="screen-view screen-hidden flex-1 flex-col items-center justify-center p-3 sm:p-6 lg:p-10 relative overflow-hidden bg-slate-50 dark:bg-[#0f172a]">
+    
+    <div class="w-full max-w-4xl z-10 space-y-6 my-auto">
+      
+      <!-- Tiêu đề trang tải file -->
+      <div class="text-center space-y-2">
+        <h2 class="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
+          Tải Lên Tệp Dữ Liệu Hoặc Google Sheets
+        </h2>
+        <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-2xl mx-auto">
+          Hỗ trợ đọc tất cả các file Excel (.xlsx, .xls), CSV (.csv), gói ZIP (.zip) và mọi đường dẫn Google Sheets. Nếu tệp hợp lệ hệ thống sẽ xuất báo cáo ngay; nếu tệp có lỗi AI sẽ thông báo và hỗ trợ sửa lỗi.
+        </p>
+      </div>
+
+      <!-- Khung Thả File Chính (Chuẩn Smallpdf, hoàn toàn trống đợi người dùng nạp file) -->
+      <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-200 dark:border-slate-700 space-y-6">
+        
+        <!-- HỘP THẢ FILE XANH DƯƠNG CHUẨN SMALLPDF (VỚI VIỀN ĐỨT INSET BÊN TRONG) -->
+        <div id="smallpdfDropzone" 
+             ondragover="handleDropzoneDragOver(event)" 
+             ondragleave="handleDropzoneDragLeave(event)" 
+             ondrop="handleDropzoneDrop(event)"
+             class="relative bg-[#0070e0] dark:bg-[#1565c0] rounded-2xl p-4 sm:p-6 text-center text-white shadow-lg transition-all duration-200 overflow-hidden select-none">
+          
+          <input type="file" id="portalFileInput" multiple class="hidden" onchange="handlePortalFilesChosen(this)" />
+
+          <!-- Khung viền đứt nét lùi vào trong đúng nguyên mẫu Smallpdf -->
+          <div class="border-2 border-dashed border-white/50 rounded-xl py-10 px-4 sm:px-8 flex flex-col items-center justify-center">
+
+            <!-- Biểu tượng tập tài liệu xếp chồng đúng nguyên mẫu Smallpdf -->
+            <div class="mb-5 flex justify-center">
+              <svg class="w-20 h-20 text-white/90 drop-shadow-sm" viewBox="0 0 100 80" fill="none" stroke="currentColor">
+                <rect x="16" y="10" width="38" height="52" rx="3" fill="rgba(255,255,255,0.15)" stroke="white" stroke-width="1.8"/>
+                <line x1="22" y1="20" x2="48" y2="20" stroke="white" stroke-width="1.2"/>
+                <line x1="22" y1="28" x2="48" y2="28" stroke="white" stroke-width="1.2"/>
+                <line x1="22" y1="36" x2="48" y2="36" stroke="white" stroke-width="1.2"/>
+                <line x1="22" y1="44" x2="48" y2="44" stroke="white" stroke-width="1.2"/>
+                <line x1="34" y1="10" x2="34" y2="48" stroke="white" stroke-width="1.2"/>
+
+                <rect x="46" y="14" width="38" height="52" rx="3" fill="rgba(255,255,255,0.15)" stroke="white" stroke-width="1.8"/>
+                <circle cx="65" cy="38" r="10" stroke="white" stroke-width="1.8" fill="none"/>
+                <path d="M 65,38 L 65,28 A 10,10 0 0,1 75,38 Z" fill="white"/>
+                <line x1="52" y1="54" x2="78" y2="54" stroke="white" stroke-width="1.2"/>
+
+                <rect x="28" y="20" width="44" height="54" rx="4" fill="#0070e0" stroke="white" stroke-width="2.2"/>
+                <rect x="34" y="44" width="32" height="18" rx="2" fill="none" stroke="white" stroke-width="1.2"/>
+                <text x="50" y="56" font-size="8.5" font-weight="900" text-anchor="middle" fill="white" font-family="'Plus Jakarta Sans', sans-serif">DATA</text>
+                <line x1="36" y1="30" x2="64" y2="30" stroke="white" stroke-width="1.8"/>
+                <line x1="36" y1="36" x2="56" y2="36" stroke="white" stroke-width="1.8"/>
+              </svg>
+            </div>
+
+            <!-- Nút Trắng "CHỌN CÁC TỆP" có divider và chevron giống hệt Smallpdf -->
+            <div class="relative inline-flex items-center z-10">
+              <button type="button" onclick="triggerFileInputClick()" 
+                      class="px-8 py-3.5 bg-white text-slate-800 rounded-lg shadow-lg hover:shadow-xl hover:bg-slate-50 transition flex items-center font-extrabold text-sm tracking-wider uppercase">
+                <svg class="w-4 h-4 mr-2.5 fill-none stroke-current" stroke-width="2.2" viewBox="0 0 24 24">
+                  <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                  <line x1="16" y1="13" x2="8" y2="13"/>
+                  <line x1="16" y1="17" x2="8" y2="17"/>
+                </svg>
+                <span>CHỌN CÁC TỆP</span>
+                <span class="h-4 w-px bg-slate-300 mx-3"></span>
+                <span class="text-xs text-slate-600">▼</span>
+              </button>
+            </div>
+
+            <!-- Dòng chữ "hoặc thả các tệp ở đây" đúng nguyên mẫu Smallpdf -->
+            <p class="text-white/95 text-xs sm:text-sm font-medium mt-3.5 tracking-wide">
+              hoặc thả các tệp ở đây
+            </p>
+
+            <!-- Card hiển thị tệp đã chọn (Mặc định ẩn, chỉ hiện khi người dùng chọn tệp) -->
+            <div id="dropzoneSelectedCard" class="hidden mt-5 inline-flex items-center gap-3 px-4 py-2.5 rounded-xl bg-white/20 backdrop-blur-md border border-white/40 text-white max-w-full">
+              <div class="text-left truncate">
+                <strong id="dropzoneFileName" class="text-xs sm:text-sm font-bold block text-white truncate max-w-xs sm:max-w-md"></strong>
+                <span id="dropzoneFileSize" class="text-[10px] text-blue-100 block font-medium"></span>
+              </div>
+              <button type="button" onclick="clearSelectedFiles(event)" class="w-5 h-5 rounded-full bg-white/20 hover:bg-slate-900/50 text-white flex items-center justify-center text-[10px] ml-1 transition" title="Xóa tệp">✕</button>
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- KHUNG BÁO LỖI TRỰC TIẾP KHI NẠP FILE RỖNG HOẶC FILE LỖI (CHẶN KHÔNG CHO CHẠY) -->
+        <div id="inlineFileErrorBox" class="hidden p-5 rounded-2xl bg-red-50/70 dark:bg-slate-900 border-2 border-red-600 shadow-md space-y-4 transition-all">
+          <div class="space-y-1">
+            <span id="inlineFileErrorBadge" class="inline-block px-2.5 py-0.5 rounded-md bg-red-600 text-white text-[10px] font-bold uppercase tracking-wider">
+              Báo lỗi — Không thể chạy phân tích
+            </span>
+            <h4 id="inlineFileErrorTitle" class="text-sm sm:text-base font-black text-red-700 dark:text-red-400">
+              Không thể chạy: Tệp dữ liệu bị rỗng hoặc bị lỗi
+            </h4>
+            <p id="inlineFileErrorDesc" class="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
+              Hệ thống chỉ cho phép chạy khi tệp dữ liệu hợp lệ (không rỗng, không sai định dạng và không thiếu dữ liệu bắt buộc).
+            </p>
+          </div>
+
+          <div class="p-3.5 rounded-xl bg-white dark:bg-slate-800 border border-red-200 dark:border-slate-700 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div class="text-left">
+              <strong class="text-xs font-black text-slate-900 dark:text-white block">
+                Trạng thái: Đã chặn thực thi (Không thể xuất báo cáo)
+              </strong>
+              <span class="text-[11px] text-slate-500 dark:text-slate-400">
+                Vui lòng sửa lỗi trong tệp gốc hoặc chọn một tệp dữ liệu không bị lỗi để chạy lại.
+              </span>
+            </div>
+            <div class="flex flex-wrap items-center gap-2 shrink-0 w-full sm:w-auto justify-end">
+              <button type="button" onclick="openAiFileRepairModal(lastFileErrorData)" 
+                      class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition cursor-pointer">
+                Xem chi tiết lỗi
+              </button>
+              <button type="button" onclick="clearSelectedFiles(event)" 
+                      class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition cursor-pointer">
+                Chọn tệp hợp lệ khác
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tùy chọn dán link Google Sheets (Tối giản, đọc trực tiếp) -->
+        <div class="p-3.5 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+          <span class="font-bold text-slate-700 dark:text-slate-300 shrink-0">Hoặc dán liên kết Google Sheets:</span>
+          <input type="url" id="portalGsheetUrl" placeholder="https://docs.google.com/spreadsheets/d/.../edit" 
+                 class="w-full sm:flex-1 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl px-3.5 py-2 font-mono text-xs focus:outline-none focus:ring-2 focus:ring-blue-600 text-slate-800 dark:text-slate-100" />
+          <button type="button" onclick="executeStartPipeline()" class="w-full sm:w-auto px-4 py-2 rounded-xl bg-slate-800 dark:bg-slate-700 hover:bg-slate-900 text-white font-bold text-xs shrink-0 transition cursor-pointer">
+            Đọc Google Sheets
+          </button>
+        </div>
+
+        <!-- NÚT BẮT ĐẦU PHÂN TÍCH -->
+        <div class="pt-2 flex flex-col items-center justify-center space-y-2.5">
+          <button id="btnStartPipeline" onclick="executeStartPipeline()" 
+                  class="w-full sm:w-auto px-12 py-4 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-black text-base tracking-wider uppercase shadow-md active:scale-95 transition flex items-center justify-center gap-2 cursor-pointer">
+            <span>PHÂN TÍCH &amp; XUẤT BÁO CÁO</span>
+            <span>&rarr;</span>
+          </button>
+          <span class="text-[11px] font-medium text-slate-400 dark:text-slate-500">
+            Chỉ tệp hợp lệ (không rỗng, không lỗi) mới chạy được ra báo cáo; tệp rỗng hoặc tệp lỗi sẽ báo lỗi và dừng ngay
+          </span>
+          <div class="flex flex-wrap items-center justify-center gap-2 pt-1">
+            <button type="button" onclick="loadBrokenSampleFileForTest()" 
+                    class="px-4 py-1.5 rounded-full bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 text-xs font-bold transition cursor-pointer">
+              Thử nạp "Tệp lỗi mẫu" (sẽ báo lỗi)
+            </button>
+            <button type="button" onclick="loadEmptySampleFileForTest()" 
+                    class="px-4 py-1.5 rounded-full bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 text-xs font-bold transition cursor-pointer">
+              Thử nạp "Tệp rỗng mẫu" (sẽ báo lỗi)
+            </button>
+          </div>
+        </div>
+
+        <!-- Cấu hình nâng cao (Thu gọn) -->
+        <details class="text-xs text-slate-500 dark:text-slate-400 border border-slate-200/80 dark:border-slate-700/60 rounded-xl p-3">
+          <summary class="cursor-pointer font-bold select-none hover:text-slate-700 dark:hover:text-slate-200">
+            Cấu hình nâng cao (Ngày đối chiếu &amp; API Key)
+          </summary>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 mt-2 border-t border-slate-100 dark:border-slate-700/60">
+            <div>
+              <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Ngày Đối Chiếu Thống Nhất:</label>
+              <input type="date" id="portalReportDate" value="2026-11-12" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-1.5 font-bold text-slate-800 dark:text-slate-100 text-xs" />
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Google Gemini API Key:</label>
+              <input type="password" id="portalApiKey" value="AQ.Ab8RN6LqubD2sz-lzVEr8Df6PSbqOVB10Ubndkmpk5k5kxuqIg" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-1.5 font-mono text-xs text-slate-800 dark:text-slate-100" />
+            </div>
+          </div>
+        </details>
+
+        <!-- PHẦN MÔ TẢ 2 CỘT DƯỚI KHUNG TẢI FILE -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-5 text-left border-t border-slate-100 dark:border-slate-700/60">
+          <div>
+            <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
+              Hệ thống AI Agent hỗ trợ đọc trực tiếp tất cả các bảng tính Google Sheets, Excel (.xlsx, .xls) và CSV (.csv). Tự động thẩm định chặt chẽ cấu trúc và dữ liệu trước khi chạy phân tích.
+            </p>
+          </div>
+          
+          <ul class="space-y-2.5 text-xs text-slate-700 dark:text-slate-300 font-semibold">
+            <li class="flex items-start gap-2.5">
+              <span class="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center shrink-0 text-xs font-bold">✓</span>
+              <span class="leading-tight">Đọc trực tiếp Google Sheets, Excel (.xlsx) và CSV (.csv) hợp lệ</span>
+            </li>
+            <li class="flex items-start gap-2.5">
+              <span class="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center shrink-0 text-xs font-bold">✓</span>
+              <span class="leading-tight">Chặn và báo lỗi ngay nếu nạp tệp rỗng hoặc tệp bị lỗi dữ liệu</span>
+            </li>
+            <li class="flex items-start gap-2.5">
+              <span class="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center shrink-0 text-xs font-bold">✓</span>
+              <span class="leading-tight">Chỉ chạy và xuất bản báo cáo khi tệp hoàn toàn sạch và hợp lệ</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- KHU VỰC ĐÁNH GIÁ SAO (STAR RATING) -->
+        <div class="pt-5 border-t border-slate-100 dark:border-slate-700/60 flex flex-col sm:flex-row items-center justify-between gap-4 bg-slate-50/80 dark:bg-slate-900/60 p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-700">
+          
+          <div class="text-left">
+            <div class="flex items-center gap-2">
+              <span class="text-sm sm:text-base font-black text-slate-900 dark:text-white">4.9 / 5.0</span>
+              <span class="text-xs font-black text-amber-500 tracking-wider">★★★★★</span>
+              <span class="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">(28.450 đánh giá)</span>
+            </div>
+            <p class="text-xs text-slate-600 dark:text-slate-300 font-medium">
+              Đánh giá trải nghiệm của bạn với hệ thống của <strong>Công ty của Duydudi</strong>:
+            </p>
+          </div>
+
+          <!-- Bộ sao tương tác -->
+          <div class="flex flex-col items-center sm:items-end gap-1 shrink-0">
+            <div id="interactiveStarContainer" class="flex items-center gap-1 text-2xl cursor-pointer select-none" onmouseleave="resetStars()">
+              <span class="star-rating-item text-amber-400 hover:scale-125 transition-transform" data-rating="1" onclick="submitUserRating(1)" onmouseover="highlightStars(1)">★</span>
+              <span class="star-rating-item text-amber-400 hover:scale-125 transition-transform" data-rating="2" onclick="submitUserRating(2)" onmouseover="highlightStars(2)">★</span>
+              <span class="star-rating-item text-amber-400 hover:scale-125 transition-transform" data-rating="3" onclick="submitUserRating(3)" onmouseover="highlightStars(3)">★</span>
+              <span class="star-rating-item text-amber-400 hover:scale-125 transition-transform" data-rating="4" onclick="submitUserRating(4)" onmouseover="highlightStars(4)">★</span>
+              <span class="star-rating-item text-amber-400 hover:scale-125 transition-transform" data-rating="5" onclick="submitUserRating(5)" onmouseover="highlightStars(5)">★</span>
+            </div>
+            <span id="starRatingFeedbackText" class="text-[11px] font-bold text-blue-600 dark:text-blue-400 transition-all">
+              Đã đánh giá 5/5 sao
+            </span>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+
+  <!-- ========================================================================= -->
+  <!-- MÀN HÌNH 3: BÁO CÁO DOANH SỐ (TỐI GIẢN, ÍT MÀU, KHÔNG ICON RƯỜM RÀ)       -->
+  <!-- ========================================================================= -->
+  <main id="mainScreen2" class="screen-view screen-hidden flex-1 p-2 sm:p-5 lg:p-7 justify-center items-center bg-slate-100 dark:bg-[#0f172a]">
+    
+    <!-- GRAND STUDIO CANVAS -->
+    <div class="studio-canvas w-full max-w-[1400px] bg-white dark:bg-[#1e293b] overflow-hidden flex flex-col lg:flex-row min-h-[820px] shadow-sm border border-slate-200 dark:border-slate-800">
+      
+      <!-- CỘT 1: SIDEBAR TỐI GIẢN TÔNG SLATE / BLUE -->
+      <aside class="w-full lg:w-64 bg-[#0f172a] text-white p-6 flex flex-col justify-between shrink-0 select-none border-r border-slate-800">
+        
+        <div class="space-y-6">
+          
+          <!-- Logo Duydudi Studio -->
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center font-black text-lg tracking-tighter text-white">
+              DD
+            </div>
+            <div>
+              <span class="text-lg font-black tracking-tight text-white block leading-none">Duydudi</span>
+              <span class="text-[11px] text-slate-400 font-medium">Công ty của Duydudi</span>
+            </div>
+          </div>
+
+          <!-- MENU ĐIỀU HƯỚNG TỐI GIẢN (KHÔNG ICON) -->
+          <nav class="space-y-1.5 pt-2">
+            <button onclick="switchStudioTab('overview')" id="navItemDashboard" class="w-full py-2.5 px-4 rounded-xl bg-blue-600 text-white font-bold text-xs text-left transition cursor-pointer">
+              Tổng quan báo cáo
+            </button>
+
+            <button onclick="openStudioModal('pipeline')" class="w-full py-2.5 px-4 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white font-semibold text-xs text-left transition cursor-pointer">
+              Danh sách cơ hội mở
+            </button>
+
+            <button onclick="openStudioModal('wonOrders')" class="w-full py-2.5 px-4 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white font-semibold text-xs text-left transition cursor-pointer">
+              Doanh số thực tế đã chốt
+            </button>
+
+            <button onclick="openStudioModal('forecast')" class="w-full py-2.5 px-4 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white font-semibold text-xs text-left transition cursor-pointer">
+              Dự báo doanh số trọng số
+            </button>
+
+            <button onclick="openStudioModal('kpiReps')" class="w-full py-2.5 px-4 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white font-semibold text-xs text-left transition cursor-pointer">
+              Hiệu suất KPI nhân viên
+            </button>
+
+            <button onclick="openStudioModal('anomalies')" class="w-full py-2.5 px-4 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white font-semibold text-xs flex items-center justify-between transition cursor-pointer">
+              <span>Kiểm duyệt rủi ro dữ liệu</span>
+              <span id="badgeSidebarAnomalies" class="px-2 py-0.5 rounded-md bg-slate-700 text-slate-200 text-[10px] font-bold">0</span>
+            </button>
+
+            <button onclick="openStudioModal('top5')" class="w-full py-2.5 px-4 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white font-semibold text-xs text-left transition cursor-pointer">
+              Top 5 cơ hội ưu tiên tuần tới
+            </button>
+
+            <button onclick="openStudioModal('audit')" class="w-full py-2.5 px-4 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white font-semibold text-xs text-left transition cursor-pointer">
+              Nhật ký truy vết hệ thống
+            </button>
+          </nav>
+        </div>
+
+        <!-- Footer Sidebar -->
+        <div class="pt-6 border-t border-slate-800 space-y-2">
+          <button onclick="switchMainScreen('cover')" class="w-full py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs flex items-center justify-between transition cursor-pointer">
+            <span>Về trang bìa</span>
+            <span>&rarr;</span>
+          </button>
+          <div class="text-[10px] text-slate-500 text-center font-mono">
+            Công ty của Duydudi
+          </div>
+        </div>
+
+      </aside>
+
+
+      <!-- CỘT 2: KHU VỰC NỘI DUNG CHÍNH (CANVAS DASHBOARD) -->
+      <section class="flex-1 bg-[#f8fafc] dark:bg-[#0f172a] p-4 sm:p-7 flex flex-col justify-between overflow-y-auto custom-scroll">
+        
+        <!-- TRẠNG THÁI TRỐNG: KHI CHƯA TẢI TỆP LÊN PHÂN TÍCH -->
+        <div id="dashboardEmptyState" class="flex-1 flex flex-col items-center justify-center p-8 sm:p-14 text-center my-auto space-y-4">
+          <div class="space-y-1">
+            <h3 class="text-xl sm:text-2xl font-black text-slate-800 dark:text-white">Chưa Có Dữ Liệu Phân Tích</h3>
+            <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-md mx-auto leading-relaxed">
+              Vui lòng chuyển sang trang <strong>Tải Tệp Lên</strong> để nạp tệp Excel (.xlsx), CSV (.csv) hoặc dán liên kết Google Sheets của bạn.
+            </p>
+          </div>
+          <button onclick="switchMainScreen('screen1')" class="px-8 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs tracking-wider uppercase shadow-sm transition flex items-center gap-2 cursor-pointer">
+            <span>Chuyển sang trang tải tệp lên</span>
+            <span>&rarr;</span>
+          </button>
+        </div>
+
+        <!-- NỘI DUNG DASHBOARD THỰC TẾ (CHỈ HIỂN THỊ KHI ĐÃ TẢI DỮ LIỆU & PHÂN TÍCH) -->
+        <div id="dashboardContent" class="space-y-6 hidden">
+          
+          <!-- BANNER THÔNG BÁO KHI AI ĐÃ TỰ ĐỘNG SỬA LỖI FILE THÀNH CÔNG -->
+          <div id="aiRepairedBanner" class="hidden p-4 rounded-2xl bg-blue-50 dark:bg-slate-800 border border-blue-200 dark:border-slate-700 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div>
+              <h4 id="aiRepairedBannerTitle" class="text-xs sm:text-sm font-black text-slate-900 dark:text-white">
+                AI Agent đã tự động chỉnh sửa và khắc phục các lỗi trong tệp của bạn
+              </h4>
+              <p id="aiRepairedBannerSub" class="text-[11px] text-slate-600 dark:text-slate-300 font-medium">
+                Toàn bộ cấu trúc cột, số tiền, giai đoạn bị thiếu và thông tin xác nhận đã được chuẩn hóa để tính ra kết quả dưới đây.
+              </p>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+              <button onclick="openStudioModal('aiRepairs')" class="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition cursor-pointer">
+                Xem chi tiết AI đã sửa
+              </button>
+              <a href="/api/export/cleaned.csv" download="du_lieu_da_sua_boi_AI.csv" class="px-3 py-2 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-100 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 text-xs font-bold transition">
+                Tải tệp sạch (.csv)
+              </a>
+            </div>
+          </div>
+
+          <!-- HÀNG TIÊU ĐỀ BÁO CÁO -->
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h2 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">Báo Cáo Phân Tích Tiến Độ &amp; Doanh Số</h2>
+              <p id="dashboardSubDate" class="text-xs text-slate-500 dark:text-slate-400 font-semibold">
+                Ngày đối chiếu: 2026-11-12 • Công ty của Duydudi
+              </p>
+            </div>
+
+            <!-- Nút thao tác nhanh -->
+            <div class="flex items-center gap-2">
+              <span id="labelCurrentDataset" class="px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl">
+                Dữ liệu tải lên
+              </span>
+              <button onclick="switchMainScreen('screen1')" class="px-3.5 py-1.5 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 text-xs font-bold rounded-xl transition hover:bg-slate-100 cursor-pointer">
+                Tải tệp khác
+              </button>
+              <button onclick="triggerRunAgent(false)" class="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition cursor-pointer">
+                Làm mới
+              </button>
+            </div>
+          </div>
+
+          <!-- ================================================================= -->
+          <!-- HÀNG 4 THẺ CHỈ SỐ CHÍNH (ĐỒNG BỘ TÔNG MÀU SLATE & BLUE TỐI GIẢN)   -->
+          <!-- ================================================================= -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            
+            <!-- THẺ 1: Doanh số thực tế đã chốt -->
+            <div onclick="openStudioModal('wonOrders')" class="cursor-pointer rounded-2xl p-5 bg-blue-600 text-white flex flex-col justify-between min-h-[125px] shadow-xs hover:bg-blue-700 transition">
+              <div class="flex justify-between items-start">
+                <span id="metricRecordedRev" class="text-2xl sm:text-3xl font-black tracking-tight leading-none">
+                  0 đ
+                </span>
+                <span class="text-sm font-bold text-white/80">&rarr;</span>
+              </div>
+              <div class="space-y-0.5">
+                <span class="text-xs font-bold text-white block">Doanh số thực tế (Đã chốt)</span>
+                <span class="text-[11px] text-blue-100 block">Tách bạch 100% khỏi cơ hội mở</span>
+              </div>
+            </div>
+
+            <!-- THẺ 2: Cơ hội đang mở -->
+            <div onclick="openStudioModal('pipeline')" class="cursor-pointer rounded-2xl p-5 bg-white dark:bg-slate-800 text-slate-900 dark:text-white flex flex-col justify-between min-h-[125px] shadow-xs border border-slate-200 dark:border-slate-700 hover:border-blue-500 transition">
+              <div class="flex justify-between items-start">
+                <span id="metricOpenDealsCount" class="text-2xl sm:text-3xl font-black leading-none">
+                  0
+                </span>
+                <span class="text-sm font-bold text-slate-400">&rarr;</span>
+              </div>
+              <div class="space-y-0.5">
+                <span class="text-xs font-bold text-slate-700 dark:text-slate-200 block">Cơ hội đang mở (Active)</span>
+                <span class="text-[11px] text-slate-400 dark:text-slate-500 block">Đã gộp trùng &amp; chuẩn hóa</span>
+              </div>
+            </div>
+
+            <!-- THẺ 3: Tổng cơ hội -->
+            <div onclick="openStudioModal('kpiReps')" class="cursor-pointer rounded-2xl p-5 bg-white dark:bg-slate-800 text-slate-900 dark:text-white flex flex-col justify-between min-h-[125px] shadow-xs border border-slate-200 dark:border-slate-700 hover:border-blue-500 transition">
+              <div class="flex justify-between items-start">
+                <span id="metricTotalInputCount" class="text-2xl sm:text-3xl font-black leading-none">
+                  0
+                </span>
+                <span class="text-sm font-bold text-slate-400">&rarr;</span>
+              </div>
+              <div class="space-y-0.5">
+                <span class="text-xs font-bold text-slate-700 dark:text-slate-200 block">Tổng cơ hội trong hồ sơ</span>
+                <span class="text-[11px] text-slate-400 dark:text-slate-500 block">Theo dõi toàn bộ nhân viên</span>
+              </div>
+            </div>
+
+            <!-- THẺ 4: Doanh số dự kiến trọng số -->
+            <div onclick="openStudioModal('forecast')" class="cursor-pointer rounded-2xl p-5 bg-slate-900 dark:bg-slate-800 text-white flex flex-col justify-between min-h-[125px] shadow-xs border border-slate-800 dark:border-slate-700 hover:bg-slate-800 transition">
+              <div class="flex justify-between items-start">
+                <span id="metricForecastRev" class="text-2xl sm:text-3xl font-black tracking-tight leading-none">
+                  0 đ
+                </span>
+                <span class="text-sm font-bold text-slate-400">&rarr;</span>
+              </div>
+              <div class="space-y-0.5">
+                <span class="text-xs font-bold text-white block">Doanh số dự kiến (Trọng số)</span>
+                <span class="text-[10px] text-slate-400 block leading-tight">
+                  Ước tính theo quy tắc giai đoạn
+                </span>
+              </div>
+            </div>
+
+          </div>
+
+
+          <!-- ================================================================= -->
+          <!-- HÀNG PHỤ: TỶ TRỌNG DOANH SỐ & NHẬN XÉT ĐIỀU HÀNH AI                 -->
+          <!-- ================================================================= -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            
+            <!-- BIỂU ĐỒ TỶ TRỌNG ĐỒNG MÀU XANH - XÁM -->
+            <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-700 flex items-center justify-between">
+              <div class="w-24 h-24 relative flex items-center justify-center shrink-0">
+                <svg viewBox="0 0 120 120" class="w-full h-full transform -rotate-12">
+                  <circle cx="60" cy="60" r="42" fill="none" stroke="#1d4ed8" stroke-width="18" stroke-dasharray="140 264" stroke-dashoffset="0" />
+                  <circle cx="60" cy="60" r="42" fill="none" stroke="#60a5fa" stroke-width="18" stroke-dasharray="80 264" stroke-dashoffset="-145" />
+                  <circle cx="60" cy="60" r="42" fill="none" stroke="#cbd5e1" stroke-width="18" stroke-dasharray="40 264" stroke-dashoffset="-230" />
+                  <circle cx="60" cy="60" r="28" class="fill-white dark:fill-slate-800" />
+                </svg>
+              </div>
+
+              <div class="space-y-2 text-xs font-semibold text-slate-700 dark:text-slate-300">
+                <div class="flex items-center gap-2">
+                  <span class="w-3 h-3 rounded-xs bg-[#1d4ed8]"></span>
+                  <span>Doanh số đã chốt (Won)</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="w-3 h-3 rounded-xs bg-[#60a5fa]"></span>
+                  <span>Dự báo cơ hội mở</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="w-3 h-3 rounded-xs bg-[#cbd5e1]"></span>
+                  <span>Cơ hội đã đóng (Lost)</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card Tóm tắt Đánh giá Điều hành AI -->
+            <div class="lg:col-span-2 bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-700 flex flex-col justify-between">
+              <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-700 pb-2 mb-2">
+                <h3 class="text-xs font-black text-slate-800 dark:text-slate-200 uppercase tracking-wider">
+                  Nhận Xét Điều Hành &amp; Đề Xuất Kinh Doanh Từ AI
+                </h3>
+                <span class="text-[10px] font-mono font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded-md">
+                  Gemini AI
+                </span>
+              </div>
+              <p id="dashboardAiExecutiveBrief" class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-medium line-clamp-3">
+                Báo cáo nhận xét điều hành sẽ hiển thị ngay sau khi bạn tải tệp dữ liệu lên.
+              </p>
+              <div class="flex items-center justify-between pt-2 text-[11px] font-bold">
+                <span class="text-slate-400 dark:text-slate-500">Phân tích tự động dựa trên dữ liệu thực tế</span>
+                <button onclick="openStudioModal('geminiDetail')" class="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer">
+                  Xem toàn văn báo cáo nhận xét &rarr;
+                </button>
+              </div>
+            </div>
+
+          </div>
+
+
+          <!-- ================================================================= -->
+          <!-- HÀNG DƯỚI: BIỂU ĐỒ DOANH SỐ & DANH SÁCH ƯU TIÊN                     -->
+          <!-- ================================================================= -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            
+            <!-- CỘT TRÁI: Biểu đồ xu hướng doanh số -->
+            <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-700 flex flex-col justify-between">
+              <div class="flex items-center justify-between mb-2">
+                <div>
+                  <h3 class="text-base font-black text-slate-800 dark:text-white">Biểu Đồ Doanh Số Theo Nhân Viên</h3>
+                  <span class="text-xs text-slate-400 dark:text-slate-500 font-medium">Thống kê mức thực hiện mục tiêu</span>
+                </div>
+                <div class="flex items-center gap-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                  <span class="w-2 h-2 rounded-full bg-blue-600"></span> Doanh số (VNĐ)
+                </div>
+              </div>
+
+              <!-- Smooth Wave Chart màu Xanh đồng bộ -->
+              <div class="w-full h-48 relative flex items-end pt-4 pb-2">
+                <div class="flex flex-col justify-between h-full text-[10px] font-mono text-slate-400 pr-3 pb-4">
+                  <span>1.5T</span>
+                  <span>1.0T</span>
+                  <span>500M</span>
+                  <span>100M</span>
+                  <span>0</span>
+                </div>
+
+                <div class="flex-1 h-full relative">
+                  <svg viewBox="0 0 400 160" preserveAspectRatio="none" class="w-full h-full overflow-visible">
+                    <line x1="0" y1="30" x2="400" y2="30" stroke="#94a3b8" stroke-opacity="0.2" stroke-width="1" />
+                    <line x1="0" y1="70" x2="400" y2="70" stroke="#94a3b8" stroke-opacity="0.2" stroke-width="1" />
+                    <line x1="0" y1="110" x2="400" y2="110" stroke="#94a3b8" stroke-opacity="0.2" stroke-width="1" />
+
+                    <path d="M 0,130 C 50,140 80,100 120,110 C 160,120 200,60 250,85 C 290,105 320,30 360,25 L 390,40" 
+                          fill="none" stroke="#2563eb" stroke-width="3.5" stroke-linecap="round" />
+                    
+                    <circle cx="360" cy="25" r="6" fill="#ffffff" stroke="#2563eb" stroke-width="3.5" />
+                  </svg>
+
+                  <div class="flex justify-between text-[10px] font-mono text-slate-400 dark:text-slate-500 pt-1">
+                    <span>NV01</span>
+                    <span>NV03</span>
+                    <span>NV05</span>
+                    <span>NV07</span>
+                    <span>NV10</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="pt-2 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between text-xs font-bold">
+                <span class="text-slate-500 dark:text-slate-400">Mức hoàn thành toàn công ty: <strong id="companyAttainPct" class="text-slate-900 dark:text-white">0%</strong></span>
+                <button onclick="openStudioModal('kpiReps')" class="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer">
+                  Chi tiết từng nhân viên &rarr;
+                </button>
+              </div>
+            </div>
+
+            <!-- CỘT PHẢI: Các cơ hội ưu tiên hàng đầu -->
+            <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-700 flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between mb-3">
+                  <h3 class="text-base font-black text-slate-800 dark:text-white">Cơ Hội Trọng Điểm Cần Ưu Tiên</h3>
+                  <button onclick="openStudioModal('top5')" class="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer">
+                    Xem chi tiết &rarr;
+                  </button>
+                </div>
+
+                <div class="flex justify-between text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider pb-2 border-b border-slate-100 dark:border-slate-700">
+                  <span>Khách hàng &amp; Giá trị</span>
+                  <span>Ngày chốt dự kiến</span>
+                </div>
+
+                <div id="recentOrdersContainer" class="divide-y divide-slate-100 dark:divide-slate-700/60 pt-1">
+                  <!-- Rendered dynamically by JS -->
+                </div>
+              </div>
+
+              <div class="pt-3 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between text-xs font-bold">
+                <span class="text-slate-500 dark:text-slate-400">Xếp hạng ưu tiên theo trọng số &amp; ngày chốt</span>
+                <button onclick="openStudioModal('anomalies')" class="px-3 py-1.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-lg border border-slate-200 dark:border-slate-600 hover:bg-slate-200 cursor-pointer">
+                  Kiểm duyệt ca nghi vấn
+                </button>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- FOOTER CANVAS -->
+        <footer class="pt-6 mt-4 border-t border-slate-200/80 dark:border-slate-700/80 flex flex-col sm:flex-row items-center justify-between text-[11px] text-slate-400 dark:text-slate-500 font-semibold gap-2">
+          <span>Công ty của Duydudi • Hệ thống Phân tích Doanh số AI</span>
+          <div class="flex items-center gap-4">
+            <button onclick="openStudioModal('selfTest')" class="hover:text-slate-600 dark:hover:text-slate-300 transition cursor-pointer">Tự kiểm thử hệ thống</button>
+            <button onclick="openStudioModal('task1Doc')" class="hover:text-slate-600 dark:hover:text-slate-300 transition cursor-pointer">Tài liệu kiến trúc</button>
+          </div>
+        </footer>
+
+      </section>
+
+    </div>
+  </main>
+
+
+  <!-- ========================================================================= -->
+  <!-- MODAL DIALOG CHI TIẾT DÀNH CHO CÁC MỤC NGHIỆP VỤ                          -->
+  <!-- ========================================================================= -->
+  <div id="studioDetailModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden items-center justify-center p-3 sm:p-6">
+    <div class="bg-white dark:bg-slate-800 rounded-3xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-700">
+      
+      <!-- Modal Header -->
+      <div class="p-5 sm:p-6 bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between shrink-0">
+        <div>
+          <h3 id="modalDetailTitle" class="text-lg font-black text-slate-900 dark:text-white">Chi Tiết Nghiệp Vụ</h3>
+          <p id="modalDetailSubtitle" class="text-xs text-slate-500 dark:text-slate-400 font-semibold">Công ty của Duydudi</p>
+        </div>
+        <button onclick="closeStudioModal()" class="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-black flex items-center justify-center transition cursor-pointer">
+          ✕
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div id="modalDetailBody" class="p-5 sm:p-6 overflow-y-auto custom-scroll flex-1 space-y-4 text-slate-800 dark:text-slate-200">
+        <!-- Rendered by JS -->
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-4 bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700 flex justify-end gap-2 shrink-0">
+        <button onclick="closeStudioModal()" class="px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-bold rounded-xl text-xs transition cursor-pointer">
+          Đóng
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ========================================================================= -->
+  <!-- MODAL CẢNH BÁO FILE LỖI & HỎI Ý KIẾN CHO AI TỰ ĐỘNG SỬA LỖI (AI REPAIR)   -->
+  <!-- ========================================================================= -->
+  <div id="aiFileRepairModal" class="fixed inset-0 bg-slate-900/75 backdrop-blur-sm z-50 hidden items-center justify-center p-3 sm:p-6">
+    <div class="bg-white dark:bg-slate-800 rounded-3xl w-full max-w-3xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden border-2 border-red-600/80">
+      
+      <!-- Header Báo Lỗi Chặn Thực Thi -->
+      <div class="p-5 sm:p-6 bg-slate-900 text-white flex items-center justify-between shrink-0">
+        <div>
+          <span id="aiFileRepairModalBadge" class="px-2.5 py-0.5 rounded-md bg-red-600 text-white text-[10px] font-bold uppercase tracking-wider">
+            Báo lỗi — Không thể chạy phân tích
+          </span>
+          <h3 id="aiFileRepairModalTitle" class="text-lg sm:text-xl font-black text-white mt-1">
+            Không Thể Chạy: Tệp Dữ Liệu Bị Rỗng Hoặc Có Lỗi
+          </h3>
+        </div>
+        <button onclick="closeAiFileRepairModal()" class="w-8 h-8 rounded-full bg-white/15 hover:bg-white/25 text-white font-black flex items-center justify-center transition cursor-pointer">
+          ✕
+        </button>
+      </div>
+
+      <!-- Body: Chi tiết các lỗi phát hiện -->
+      <div id="aiFileRepairModalBody" class="p-5 sm:p-6 overflow-y-auto custom-scroll flex-1 space-y-4 text-xs text-slate-700 dark:text-slate-200">
+        <!-- Rendered dynamically by openAiFileRepairModal(data) -->
+      </div>
+
+      <!-- Footer: Thông báo chặn chạy & nút chọn lại file hợp lệ -->
+      <div class="p-5 sm:p-6 bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700 space-y-4 shrink-0">
+        <div class="p-4 rounded-2xl bg-red-50/70 dark:bg-slate-800 border border-red-200 dark:border-red-900/60">
+          <strong class="text-red-700 dark:text-red-400 font-black block text-sm mb-1">
+            Hệ thống đã từ chối chạy phân tích trên tệp này
+          </strong>
+          <span class="text-xs text-slate-600 dark:text-slate-300">
+            Chỉ những tệp dữ liệu <strong>không bị rỗng và không bị lỗi</strong> mới có thể chạy và xuất bản báo cáo. Vui lòng kiểm tra lại tệp hoặc chọn tệp hợp lệ khác.
+          </span>
+        </div>
+
+        <div class="flex flex-col sm:flex-row items-center justify-end gap-3">
+          <button type="button" onclick="closeAiFileRepairModal()" 
+                  class="w-full sm:w-auto px-5 py-3 rounded-xl bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-100 font-bold text-xs transition cursor-pointer">
+            Đóng thông báo
+          </button>
+          <button type="button" onclick="closeErrorAndResetFile()" 
+                  class="w-full sm:w-auto px-7 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black text-xs sm:text-sm uppercase tracking-wider shadow-md transition flex items-center justify-center gap-2 cursor-pointer">
+            <span>Xóa tệp lỗi &amp; Chọn tệp hợp lệ</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ========================================================================= -->
+  <!-- MODAL CẤU HÌNH NHANH (CONFIG MODAL)                                       -->
+  <!-- ========================================================================= -->
+  <div id="configModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden items-center justify-center p-3">
+    <div class="bg-white dark:bg-slate-800 rounded-3xl w-full max-w-md p-6 shadow-2xl border border-slate-200 dark:border-slate-700 space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-700 pb-3">
+        <h3 class="font-black text-slate-900 dark:text-white text-base">Cấu Hình Nhanh AI Agent</h3>
+        <button onclick="closeConfigModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-lg">✕</button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Kịch Bản Phân Tích:</label>
+          <select id="modalScenarioSelect" class="w-full p-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-slate-800 dark:text-slate-100">
+            <option value="scenario_1_normal">Kịch bản 1: Thông thường</option>
+            <option value="scenario_0_full300">Kịch bản Chuẩn 300 Cơ hội</option>
+            <option value="scenario_2_missing">Kịch bản 2: Thiếu dữ liệu</option>
+            <option value="scenario_3_boundary">Kịch bản 3: Ranh giới quy tắc</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Ngày Đối Chiếu Thống Nhất:</label>
+          <input type="date" id="modalReportDateInput" value="2026-11-12" class="w-full p-2 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-slate-800 dark:text-slate-100" />
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Gemini API Key:</label>
+          <input type="password" id="modalApiKeyInput" value="AQ.Ab8RN6LqubD2sz-lzVEr8Df6PSbqOVB10Ubndkmpk5k5kxuqIg" class="w-full p-2 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl font-mono text-[11px] text-slate-800 dark:text-slate-100" />
+        </div>
+      </div>
+
+      <div class="pt-3 border-t border-slate-200 dark:border-slate-700 flex justify-end gap-2">
+        <button onclick="closeConfigModal()" class="px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold rounded-xl text-xs">Hủy</button>
+        <button onclick="applyConfigAndRun()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs shadow-xs">Áp Dụng &amp; Chạy</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ========================================================================= -->
+  <!-- CORE JAVASCRIPT: THEME ENGINE, WORKFLOW & DASHBOARD                       -->
+  <!-- ========================================================================= -->
+  <script>
+    // State toàn cục
+    let currentMainScreen = 'cover';
+    let portalCurrentTab = 'upload';
+    let currentAnalysisResult = null;
+    let lastFileErrorData = null;
+    let humanOverridesState = {};
+    let selectedUploadFiles = [];
+    let screenNavigationHistory = ['cover'];
+    let screenHistoryIndex = 0;
+
+    // =========================================================================
+    // HỆ THỐNG GIAO DIỆN SÁNG / TỐI & LỜI CHÀO TRANG BÌA SINH ĐỘNG
+    // =========================================================================
+    function initTheme() {
+      const savedTheme = localStorage.getItem('duydudi_theme') || 'light';
+      applyTheme(savedTheme);
+    }
+
+    function toggleThemeMode() {
+      const isDark = document.documentElement.classList.contains('dark');
+      const target = isDark ? 'light' : 'dark';
+      applyTheme(target);
+      localStorage.setItem('duydudi_theme', target);
+    }
+
+    function applyTheme(theme) {
+      const label = document.getElementById('themeToggleLabel');
+
+      if (theme === 'dark') {
+        document.documentElement.classList.add('dark');
+        document.documentElement.classList.remove('light');
+        if (label) label.textContent = 'Giao diện: Sáng';
+      } else {
+        document.documentElement.classList.remove('dark');
+        document.documentElement.classList.add('light');
+        if (label) label.textContent = 'Giao diện: Tối';
+      }
+      updateChromeTabStyles(currentMainScreen);
+    }
+
+    function initCoverGreeting() {
+      const timeEl = document.getElementById('coverTimeGreeting');
+      const msgEl = document.getElementById('coverDynamicWelcomeText');
+      const hour = new Date().getHours();
+
+      let greetingTitle = 'Xin chào Quý khách! Chào mừng bạn đến với Công ty của Duydudi';
+      if (hour >= 5 && hour < 12) {
+        greetingTitle = 'Chào buổi sáng! Chúc bạn một ngày làm việc hiệu quả cùng Công ty của Duydudi';
+      } else if (hour >= 12 && hour < 18) {
+        greetingTitle = 'Chào buổi chiều! Rất vui được đồng hành cùng bạn tại Công ty của Duydudi';
+      } else {
+        greetingTitle = 'Chào buổi tối! Cảm ơn bạn đã tin tưởng sử dụng hệ thống AI của Công ty của Duydudi';
+      }
+      if (timeEl) timeEl.textContent = greetingTitle;
+
+      const welcomeMessages = [
+        'Kính chúc bạn một ngày làm việc hiệu quả! Hệ thống AI của Công ty của Duydudi đã sẵn sàng hỗ trợ bạn đọc dữ liệu Google Sheets, CSV, Excel và xuất báo cáo tức thì.',
+        'Chỉ cần tải tệp CSV, Excel (.xlsx) hoặc dán link Google Sheets hợp lệ — hệ thống sẽ phân tích và mở bản báo cáo điều hành ngay lập tức.',
+        'Hệ thống tự động kiểm định chất lượng dữ liệu nghiêm ngặt: tệp rỗng hoặc tệp bị lỗi sẽ được báo lỗi ngay để đảm bảo độ chính xác tuyệt đối cho báo cáo.'
+      ];
+      let msgIdx = 0;
+      if (msgEl) {
+        msgEl.style.transition = 'opacity 0.45s ease, transform 0.45s ease';
+        setInterval(() => {
+          msgIdx = (msgIdx + 1) % welcomeMessages.length;
+          msgEl.style.opacity = '0';
+          msgEl.style.transform = 'translateY(4px)';
+          setTimeout(() => {
+            msgEl.textContent = welcomeMessages[msgIdx];
+            msgEl.style.opacity = '1';
+            msgEl.style.transform = 'translateY(0)';
+          }, 420);
+        }, 5500);
+      }
+    }
+
+    // =========================================================================
+    // CHUYỂN ĐỔI TAB & ĐIỀU HƯỚNG MÀN HÌNH
+    // =========================================================================
+    function switchMainScreen(target, recordHistory = true) {
+      if (target === 'screen2' && !currentAnalysisResult) {
+        alert('Chưa có báo cáo hợp lệ! Vui lòng nạp tệp dữ liệu không rỗng và không bị lỗi để hệ thống chạy phân tích.');
+        target = 'screen1';
+      }
+      currentMainScreen = target;
+      if (recordHistory) {
+        if (screenNavigationHistory[screenHistoryIndex] !== target) {
+          screenNavigationHistory = screenNavigationHistory.slice(0, screenHistoryIndex + 1);
+          screenNavigationHistory.push(target);
+          screenHistoryIndex = screenNavigationHistory.length - 1;
+        }
+      }
+
+      const sCover = document.getElementById('mainScreenCover');
+      const s1 = document.getElementById('mainScreen1');
+      const s2 = document.getElementById('mainScreen2');
+
+      const allScreens = [sCover, s1, s2];
+      allScreens.forEach(s => {
+        if (s) {
+          s.classList.remove('screen-active');
+          s.classList.add('screen-hidden');
+        }
+      });
+
+      if (target === 'cover' && sCover) {
+        sCover.classList.remove('screen-hidden');
+        sCover.classList.add('screen-active');
+      } else if (target === 'screen1' && s1) {
+        s1.classList.remove('screen-hidden');
+        s1.classList.add('screen-active');
+      } else if (target === 'screen2' && s2) {
+        s2.classList.remove('screen-hidden');
+        s2.classList.add('screen-active');
+      }
+
+      updateChromeTabStyles(target);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function navigateHistoryBack() {
+      if (screenHistoryIndex > 0) {
+        screenHistoryIndex--;
+        switchMainScreen(screenNavigationHistory[screenHistoryIndex], false);
+      }
+    }
+
+    function navigateHistoryForward() {
+      if (screenHistoryIndex < screenNavigationHistory.length - 1) {
+        screenHistoryIndex++;
+        switchMainScreen(screenNavigationHistory[screenHistoryIndex], false);
+      }
+    }
+
+    function updateChromeTabStyles(target) {
+      const tCover = document.getElementById('tabNavCover');
+      const tScreen1 = document.getElementById('tabNavScreen1');
+      const tScreen2 = document.getElementById('tabNavScreen2');
+      const tabs = [tCover, tScreen1, tScreen2];
+
+      const isDark = document.documentElement.classList.contains('dark');
+      const activeClass = isDark ? 'active-dark' : 'active-light';
+      const inactiveClass = 'bg-transparent text-slate-600 dark:text-slate-400 hover:bg-white/40 dark:hover:bg-white/10';
+
+      tabs.forEach(t => {
+        if (t) {
+          t.classList.remove('active-light', 'active-dark');
+          t.className = `chrome-tab px-4 py-1.5 flex items-center gap-2 text-xs font-bold transition ${inactiveClass}`;
+        }
+      });
+
+      let activeTab = tCover;
+      if (target === 'screen1') activeTab = tScreen1;
+      else if (target === 'screen2') activeTab = tScreen2;
+
+      if (activeTab) {
+        activeTab.className = `chrome-tab ${activeClass} px-4 py-1.5 flex items-center gap-2 text-xs font-bold`;
+      }
+    }
+
+    function toggleChromeMenu() {
+      const menu = document.getElementById('chromeDropdownMenu');
+      if (menu) menu.classList.toggle('hidden');
+    }
+
+    document.addEventListener('click', (e) => {
+      const menu = document.getElementById('chromeDropdownMenu');
+      const btn = document.getElementById('btnChromeMenu');
+      if (menu && btn && !btn.contains(e.target) && !menu.contains(e.target)) {
+        menu.classList.add('hidden');
+      }
+    });
+
+    function toggleBookmarkNotification() {
+      const icon = document.getElementById('bookmarkStarIcon');
+      if (icon) icon.textContent = 'Đã lưu';
+      alert('Đã lưu địa chỉ "https://duydudi.ai/sales-agent/duydudi-b2b" vào Dấu trang!');
+    }
+
+    // =========================================================================
+    // HỆ THỐNG ĐÁNH GIÁ SAO (STAR RATING SYSTEM)
+    // =========================================================================
+    let currentUserRating = 5;
+
+    function highlightStars(rating) {
+      const stars = document.querySelectorAll('.star-rating-item');
+      stars.forEach((star, idx) => {
+        if (idx < rating) {
+          star.classList.add('text-blue-600', 'dark:text-blue-400');
+          star.classList.remove('text-slate-300', 'dark:text-slate-600');
+        } else {
+          star.classList.remove('text-blue-600', 'dark:text-blue-400');
+          star.classList.add('text-slate-300', 'dark:text-slate-600');
+        }
+      });
+    }
+
+    function resetStars() {
+      highlightStars(currentUserRating);
+    }
+
+    function submitUserRating(rating) {
+      currentUserRating = rating;
+      highlightStars(rating);
+      const feedback = document.getElementById('starRatingFeedbackText');
+      if (feedback) {
+        const messages = {
+          5: 'Cực kỳ hài lòng! Cảm ơn bạn đã đánh giá 5/5 sao.',
+          4: 'Rất tốt! Cảm ơn bạn đã đánh giá 4/5 sao.',
+          3: 'Hài lòng! Công ty của Duydudi sẽ tiếp tục cải thiện.',
+          2: 'Cảm ơn góp ý của bạn để Công ty của Duydudi hoàn thiện hơn.',
+          1: 'Chúng tôi ghi nhận góp ý và sẽ nỗ lực nâng cấp hệ thống.'
+        };
+        feedback.textContent = messages[rating] || 'Cảm ơn bạn đã đánh giá!';
+        feedback.classList.remove('text-slate-500');
+        feedback.classList.add('text-blue-600', 'dark:text-blue-400', 'font-black');
+      }
+    }
+
+    // Nút BẮT ĐẦU từ Trang bìa: Chuyển trực tiếp sang Trang tải tệp lên
+    function startFromCover() {
+      switchMainScreen('screen1');
+    }
+
+    // Format tiền tệ VNĐ
+    function fmtVND(num) {
+      if (num === null || num === undefined || isNaN(num)) return '0 đ';
+      return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(num);
+    }
+
+    function fmtShortBill(num) {
+      if (!num) return '0 đ';
+      if (Math.abs(num) >= 1_000_000_000) {
+        return (num / 1_000_000_000).toFixed(2) + ' Tỷ';
+      }
+      if (Math.abs(num) >= 1_000_000) {
+        return (num / 1_000_000).toFixed(0) + ' Tr';
+      }
+      return fmtVND(num);
+    }
+
+    function setPortalTab(tab) {
+      portalCurrentTab = tab || 'upload';
+    }
+
+    // =========================================================================
+    // XỬ LÝ KHUNG TẢI FILE & GOOGLE SHEETS
+    // =========================================================================
+    function triggerFileInputClick() {
+      const input = document.getElementById('portalFileInput');
+      if (input) input.click();
+    }
+
+    function handleDropzoneDragOver(event) {
+      event.preventDefault();
+      const dz = document.getElementById('smallpdfDropzone');
+      if (dz) {
+        dz.classList.add('ring-4', 'ring-white/60', 'scale-[1.01]');
+      }
+    }
+
+    function handleDropzoneDragLeave(event) {
+      event.preventDefault();
+      const dz = document.getElementById('smallpdfDropzone');
+      if (dz) {
+        dz.classList.remove('ring-4', 'ring-white/60', 'scale-[1.01]');
+      }
+    }
+
+    function handleDropzoneDrop(event) {
+      event.preventDefault();
+      const dz = document.getElementById('smallpdfDropzone');
+      if (dz) {
+        dz.classList.remove('ring-4', 'ring-white/60', 'scale-[1.01]');
+      }
+      const files = event.dataTransfer?.files;
+      if (files && files.length > 0) {
+        selectedUploadFiles = Array.from(files);
+        updateSelectedFilesUI();
+        executeStartPipeline();
+      }
+    }
+
+    function handlePortalFilesChosen(input) {
+      if (input.files && input.files.length > 0) {
+        selectedUploadFiles = Array.from(input.files);
+        updateSelectedFilesUI();
+        executeStartPipeline();
+      }
+    }
+
+    function updateSelectedFilesUI() {
+      if (selectedUploadFiles && selectedUploadFiles.length > 0) {
+        const card = document.getElementById('dropzoneSelectedCard');
+        const nameEl = document.getElementById('dropzoneFileName');
+        const sizeEl = document.getElementById('dropzoneFileSize');
+        const names = selectedUploadFiles.map(f => f.name).join(', ');
+        const totalSize = (selectedUploadFiles.reduce((acc, f) => acc + f.size, 0) / 1024).toFixed(1);
+
+        if (card) card.classList.remove('hidden');
+        if (nameEl) nameEl.textContent = names;
+        if (sizeEl) sizeEl.textContent = `${totalSize} KB • Đang đọc và kiểm tra dữ liệu...`;
+      }
+    }
+
+    function clearSelectedFiles(event) {
+      if (event) event.stopPropagation();
+      selectedUploadFiles = [];
+      const card = document.getElementById('dropzoneSelectedCard');
+      if (card) card.classList.add('hidden');
+      const inlineErr = document.getElementById('inlineFileErrorBox');
+      if (inlineErr) inlineErr.classList.add('hidden');
+      const input = document.getElementById('portalFileInput');
+      if (input) input.value = '';
+    }
+
+    // Khởi chạy quy trình đọc file / Google Sheets:
+    // - NẾU FILE RỖNG HOẶC FILE LỖI -> BÁO LỖI LUÔN, KHÔNG CHẠY ĐƯỢC!
+    // - CHỈ CÓ FILE KHÔNG BỊ LỖI -> CHẠY PHÂN TÍCH VÀ MỞ BẢN BÁO CÁO (screen2).
+    async function executeStartPipeline() {
+      const gsheetUrl = document.getElementById('portalGsheetUrl')?.value?.trim();
+      if ((!selectedUploadFiles || selectedUploadFiles.length === 0) && !gsheetUrl) {
+        alert('Vui lòng chọn hoặc kéo thả tệp Excel (.xlsx), CSV (.csv) vào khung tải lên, hoặc dán link Google Sheets để bắt đầu!');
+        return;
+      }
+
+      // Kiểm tra nhanh ngay phía trình duyệt nếu tệp có dung lượng 0 byte (File rỗng)
+      if (selectedUploadFiles && selectedUploadFiles.length > 0) {
+        const emptyFiles = selectedUploadFiles.filter(f => !f || f.size === 0);
+        if (emptyFiles.length > 0) {
+          currentAnalysisResult = null;
+          resetDashboardToEmptyState();
+          openAiFileRepairModal({
+            can_run: false,
+            file_diagnostics: {
+              can_run: false,
+              has_errors: true,
+              is_empty_file: true,
+              is_corrupted_file: false,
+              total_error_count: emptyFiles.length,
+              summary_message: `BÁO LỖI: Tệp "${emptyFiles.map(f => f.name).join(', ')}" bị rỗng (0 byte). Hệ thống từ chối chạy — chỉ tệp hợp lệ không lỗi mới chạy được!`,
+              categories: [{
+                type: 'EMPTY_FILE_ERROR',
+                title: 'Lỗi tệp dữ liệu rỗng (0 byte)',
+                count: emptyFiles.length,
+                description: `Tệp "${emptyFiles.map(f => f.name).join(', ')}" hoàn toàn trống, không có dữ liệu.`
+              }],
+              sample_errors: emptyFiles.map(f => ({
+                opp_id: 'FILE-RỖNG',
+                customer_name: f.name,
+                error_title: 'Tệp bị rỗng (0 byte)',
+                error_detail: 'Tệp không chứa bất kỳ dòng dữ liệu nào.',
+                ai_fix_action: 'Vui lòng chọn tệp có dữ liệu đầy đủ và không bị lỗi.'
+              }))
+            }
+          });
+          return;
+        }
+      }
+
+      const btn = document.getElementById('btnStartPipeline');
+      const originalText = btn ? btn.innerHTML : 'PHÂN TÍCH & XUẤT BÁO CÁO';
+      if (btn) {
+        btn.innerHTML = `<span>ĐANG KIỂM TRA TỆP DỮ LIỆU...</span>`;
+        btn.disabled = true;
+      }
+
+      try {
+        const data = await triggerRunAgent(false);
+        const isBlocked = !data || data.can_run === false || (data.file_diagnostics && data.file_diagnostics.has_errors);
+        if (isBlocked) {
+          // File rỗng hoặc file lỗi -> Chặn hoàn toàn, không cho chạy!
+          currentAnalysisResult = null;
+          resetDashboardToEmptyState();
+          openAiFileRepairModal(data);
+        } else {
+          // Chỉ file KHÔNG bị lỗi -> Chạy và mở thẳng Bản Báo Cáo!
+          currentAnalysisResult = data;
+          renderStudioDashboard(data);
+          const inlineBox = document.getElementById('inlineFileErrorBox');
+          if (inlineBox) inlineBox.classList.add('hidden');
+          closeAiFileRepairModal();
+          switchMainScreen('screen2');
+        }
+      } catch (err) {
+        // Lỗi định dạng / lỗi đọc tệp -> Báo lỗi luôn, không cho chạy!
+        currentAnalysisResult = null;
+        resetDashboardToEmptyState();
+        openAiFileRepairModal({
+          can_run: false,
+          file_diagnostics: {
+            can_run: false,
+            has_errors: true,
+            is_empty_file: false,
+            is_corrupted_file: true,
+            total_error_count: 1,
+            summary_message: `BÁO LỖI: Không thể chạy phân tích do tệp bị lỗi (${err.message}). Chỉ tệp hợp lệ không lỗi mới chạy được!`,
+            categories: [{
+              type: 'STRUCTURAL_FORMAT_ERROR',
+              title: 'Lỗi định dạng hoặc cấu trúc tệp tải lên',
+              count: 1,
+              description: err.message
+            }],
+            sample_errors: [{
+              opp_id: 'FILE-LỖI',
+              customer_name: 'Tệp dữ liệu đầu vào',
+              error_title: 'Không thể đọc tệp dữ liệu',
+              error_detail: err.message,
+              ai_fix_action: 'Kiểm tra lại định dạng (.csv, .xlsx) và cấu trúc bảng rồi tải lại.'
+            }]
+          }
+        });
+      } finally {
+        if (btn) {
+          btn.innerHTML = originalText;
+          btn.disabled = false;
+        }
+      }
+    }
+
+    function resetDashboardToEmptyState() {
+      const emptyState = document.getElementById('dashboardEmptyState');
+      const dashContent = document.getElementById('dashboardContent');
+      if (emptyState) emptyState.classList.remove('hidden');
+      if (dashContent) dashContent.classList.add('hidden');
+    }
+
+    // Nạp nhanh File Lỗi Mẫu để kiểm tra hệ thống báo lỗi và chặn chạy
+    async function loadBrokenSampleFileForTest() {
+      try {
+        const res = await fetch('/api/sample-broken-file');
+        const csvText = await res.text();
+        const blob = new Blob([csvText], { type: 'text/csv;charset=utf-8;' });
+        const brokenFile = new File([blob], 'File_Loi_Du_Lieu_Mau_Duydudi.csv', { type: 'text/csv' });
+        selectedUploadFiles = [brokenFile];
+        updateSelectedFilesUI();
+        await executeStartPipeline();
+      } catch (err) {
+        alert('Không thể nạp file lỗi mẫu: ' + err.message);
+      }
+    }
+
+    // Nạp nhanh File Rỗng Mẫu (0 byte) để kiểm tra hệ thống báo lỗi và chặn chạy
+    async function loadEmptySampleFileForTest() {
+      const emptyBlob = new Blob([], { type: 'text/csv;charset=utf-8;' });
+      const emptyFile = new File([emptyBlob], 'File_Rong_Khong_Du_Lieu.csv', { type: 'text/csv' });
+      selectedUploadFiles = [emptyFile];
+      updateSelectedFilesUI();
+      await executeStartPipeline();
+    }
+
+    // Hiển thị Bảng Báo Lỗi & Chặn Thực Thi khi gặp File Rỗng hoặc File Lỗi
+    function openAiFileRepairModal(data) {
+      lastFileErrorData = data;
+      const modal = document.getElementById('aiFileRepairModal');
+      const body = document.getElementById('aiFileRepairModalBody');
+      const modalTitle = document.getElementById('aiFileRepairModalTitle');
+      const modalBadge = document.getElementById('aiFileRepairModalBadge');
+      if (!modal || !body) return;
+
+      const diag = (data && data.file_diagnostics) ? data.file_diagnostics : {
+        is_empty_file: false,
+        total_error_count: 1,
+        summary_message: 'BÁO LỖI: Tệp tải lên bị rỗng hoặc bị lỗi nên không thể chạy phân tích.',
+        categories: [],
+        sample_errors: []
+      };
+
+      const isEmpty = Boolean(diag.is_empty_file);
+      if (modalBadge) {
+        modalBadge.textContent = isEmpty ? 'Báo lỗi tệp rỗng — Không thể chạy' : 'Báo lỗi dữ liệu — Không thể chạy';
+      }
+      if (modalTitle) {
+        modalTitle.textContent = isEmpty
+          ? 'Không Thể Chạy: Tệp Dữ Liệu Bị Rỗng!'
+          : `Không Thể Chạy: Phát Hiện ${diag.total_error_count} Lỗi Trong Tệp Dữ Liệu!`;
+      }
+
+      const catsHtml = (diag.categories || []).map(c => `
+        <div class="p-3 rounded-2xl bg-red-50/60 dark:bg-slate-800/70 border border-red-200 dark:border-red-900/60 flex items-start justify-between gap-3">
+          <div>
+            <strong class="text-slate-900 dark:text-white font-black block text-xs">${c.title}</strong>
+            <p class="text-[11px] text-slate-600 dark:text-slate-300 mt-0.5">${c.description}</p>
+          </div>
+          <span class="px-2.5 py-1 rounded-full bg-red-600 text-white font-black text-[11px] shrink-0">
+            ${c.count} lỗi
+          </span>
+        </div>
+      `).join('');
+
+      const samplesHtml = (diag.sample_errors && diag.sample_errors.length > 0) ? `
+        <div class="space-y-2 pt-2">
+          <h4 class="text-xs font-black text-slate-800 dark:text-white uppercase tracking-wider">
+            Chi tiết lỗi làm tệp không thể chạy:
+          </h4>
+          <div class="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-700">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 text-[10px] uppercase border-b dark:border-slate-700">
+                  <th class="p-2.5">Mã / Dòng</th>
+                  <th class="p-2.5">Tệp / Khách Hàng</th>
+                  <th class="p-2.5">Lỗi Phát Hiện</th>
+                  <th class="p-2.5">Yêu Cầu Khắc Phục</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
+                ${diag.sample_errors.map(s => `
+                  <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/60">
+                    <td class="p-2.5 font-mono font-bold text-red-600 dark:text-red-400 whitespace-nowrap">${s.opp_id}</td>
+                    <td class="p-2.5 font-bold text-slate-800 dark:text-slate-100">${s.customer_name}</td>
+                    <td class="p-2.5 text-slate-600 dark:text-slate-300">
+                      <strong class="text-slate-900 dark:text-white block">${s.error_title}</strong>
+                      <span class="text-[11px]">${s.error_detail}</span>
+                    </td>
+                    <td class="p-2.5 text-slate-700 dark:text-slate-300 font-semibold text-[11px]">
+                      ${s.ai_fix_action || 'Sửa lại dữ liệu trong tệp rồi tải lên lại.'}
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ` : '';
+
+      body.innerHTML = `
+        <div class="p-4 rounded-2xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900">
+          <h4 class="font-black text-red-700 dark:text-red-400 text-sm">
+            ${isEmpty ? 'Tệp tải lên bị rỗng (0 byte hoặc không có dòng dữ liệu nào)!' : `Phát hiện tổng cộng ${diag.total_error_count} lỗi trong tệp dữ liệu!`}
+          </h4>
+          <p class="text-xs text-slate-700 dark:text-slate-300 mt-1 leading-relaxed">
+            ${diag.summary_message}
+          </p>
+        </div>
+
+        <div class="space-y-2">
+          <h4 class="text-xs font-black text-slate-800 dark:text-white uppercase tracking-wider">
+            Lý do hệ thống từ chối chạy:
+          </h4>
+          <div class="grid grid-cols-1 gap-2">
+            ${catsHtml}
+          </div>
+        </div>
+
+        ${samplesHtml}
+      `;
+
+      const inlineBox = document.getElementById('inlineFileErrorBox');
+      const inlineBadge = document.getElementById('inlineFileErrorBadge');
+      const inlineTitle = document.getElementById('inlineFileErrorTitle');
+      const inlineDesc = document.getElementById('inlineFileErrorDesc');
+      const sizeEl = document.getElementById('dropzoneFileSize');
+      if (inlineBox) inlineBox.classList.remove('hidden');
+      if (inlineBadge) {
+        inlineBadge.textContent = isEmpty ? 'Báo lỗi tệp rỗng — Không chạy được' : 'Báo lỗi tệp dữ liệu — Không chạy được';
+      }
+      if (inlineTitle) {
+        inlineTitle.textContent = isEmpty
+          ? 'KHÔNG THỂ CHẠY: Tệp bạn vừa nạp bị rỗng (không có dữ liệu)!'
+          : `KHÔNG THỂ CHẠY: Tệp bạn vừa nạp có ${diag.total_error_count} lỗi dữ liệu / định dạng!`;
+      }
+      if (inlineDesc) {
+        inlineDesc.textContent = diag.summary_message;
+      }
+      if (sizeEl) {
+        sizeEl.textContent = isEmpty
+          ? 'Tệp rỗng • Bị từ chối chạy phân tích'
+          : `Phát hiện ${diag.total_error_count} lỗi • Bị từ chối chạy phân tích`;
+      }
+
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeAiFileRepairModal() {
+      const modal = document.getElementById('aiFileRepairModal');
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      }
+    }
+
+    function closeErrorAndResetFile() {
+      closeAiFileRepairModal();
+      clearSelectedFiles();
+      const gsheetInput = document.getElementById('portalGsheetUrl');
+      if (gsheetInput) gsheetInput.value = '';
+    }
+
+    // Gọi API kiểm tra & phân tích AI Agent
+    async function triggerRunAgent(useLastUploaded = false) {
+      const reportDate = document.getElementById('portalReportDate')?.value || '2026-11-12';
+      const inactivityDays = 14;
+      const apiKey = document.getElementById('portalApiKey')?.value?.trim() || 'AQ.Ab8RN6LqubD2sz-lzVEr8Df6PSbqOVB10Ubndkmpk5k5kxuqIg';
+      const gsheetUrl = document.getElementById('portalGsheetUrl')?.value?.trim();
+
+      const subDate = document.getElementById('dashboardSubDate');
+      if (subDate) {
+        subDate.textContent = `Ngày đối chiếu: ${reportDate} • 10 Nhân viên kinh doanh • Công ty của Duydudi`;
+      }
+
+      let response;
+
+      if (selectedUploadFiles && selectedUploadFiles.length > 0) {
+        const formData = new FormData();
+        selectedUploadFiles.forEach(f => formData.append('files', f));
+        formData.append('report_date', reportDate);
+        formData.append('inactivity_threshold_days', inactivityDays);
+        formData.append('api_key', apiKey);
+        formData.append('human_overrides', JSON.stringify(humanOverridesState));
+
+        const labelDataset = document.getElementById('labelCurrentDataset');
+        if (labelDataset) labelDataset.textContent = `Tải lên: ${selectedUploadFiles.map(f => f.name).join(', ')}`;
+
+        response = await fetch('/api/analyze/upload', {
+          method: 'POST',
+          body: formData
+        });
+      } else if (gsheetUrl) {
+        const labelDataset = document.getElementById('labelCurrentDataset');
+        if (labelDataset) labelDataset.textContent = 'Google Sheets Trực Tuyến';
+
+        response = await fetch('/api/analyze/gsheet', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            gsheet_url: gsheetUrl,
+            report_date: reportDate,
+            inactivity_threshold_days: inactivityDays,
+            human_overrides: humanOverridesState,
+            api_key: apiKey
+          })
+        });
+      } else if (useLastUploaded) {
+        response = await fetch('/api/analyze/preset', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            scenario_id: 'scenario_1_normal',
+            report_date: reportDate,
+            inactivity_threshold_days: inactivityDays,
+            human_overrides: humanOverridesState,
+            llm_provider: 'gemini',
+            api_key: apiKey,
+            use_last_uploaded: true
+          })
+        });
+      } else {
+        throw new Error('Vui lòng chọn hoặc kéo thả tệp Excel (.xlsx), CSV (.csv) hoặc nhập link Google Sheets!');
+      }
+
+      if (!response.ok) {
+        const errJson = await response.json().catch(() => ({}));
+        throw new Error(errJson.detail || `Máy chủ báo lỗi HTTP ${response.status}`);
+      }
+
+      const data = await response.json();
+      if (data && data.can_run !== false && !(data.file_diagnostics && data.file_diagnostics.has_errors)) {
+        currentAnalysisResult = data;
+        renderStudioDashboard(data);
+      }
+      return data;
+    }
+
+    // Hiển thị Dashboard
+    function renderStudioDashboard(data) {
+      const emptyState = document.getElementById('dashboardEmptyState');
+      const dashContent = document.getElementById('dashboardContent');
+      if (emptyState) emptyState.classList.add('hidden');
+      if (dashContent) dashContent.classList.remove('hidden');
+
+      const repairBanner = document.getElementById('aiRepairedBanner');
+      const repairTitle = document.getElementById('aiRepairedBannerTitle');
+      const labelDataset = document.getElementById('labelCurrentDataset');
+      if (data.ai_repaired) {
+        if (repairBanner) repairBanner.classList.remove('hidden');
+        if (repairTitle) {
+          repairTitle.textContent = `AI Agent đã tự động chỉnh sửa và khắc phục thành công ${data.ai_repairs_count || (data.ai_repairs_log ? data.ai_repairs_log.length : 0)} lỗi trong tệp của bạn!`;
+        }
+        if (labelDataset && data.dataset_label) {
+          labelDataset.textContent = data.dataset_label;
+        }
+      } else {
+        if (repairBanner) repairBanner.classList.add('hidden');
+      }
+
+      const kpi = data.company_kpis;
+      
+      document.getElementById('metricRecordedRev').textContent = fmtShortBill(kpi.total_recorded_revenue);
+      document.getElementById('metricOpenDealsCount').textContent = `${kpi.total_open_opportunities}+`;
+      document.getElementById('metricTotalInputCount').textContent = kpi.total_unique_opportunities || data.opportunities_raw_count || '45';
+      document.getElementById('metricForecastRev').textContent = fmtShortBill(kpi.total_weighted_forecast_estimate || kpi.total_weighted_forecast_value);
+      document.getElementById('companyAttainPct').textContent = `${kpi.company_actual_attainment_pct}% (Dự kiến ${kpi.company_projected_attainment_pct}%)`;
+
+      document.getElementById('badgeSidebarAnomalies').textContent = data.anomalies.length;
+
+      const execBrief = data.ai_executive_brief || data.executive_brief;
+      if (execBrief && execBrief.content) {
+        document.getElementById('dashboardAiExecutiveBrief').textContent = 
+          execBrief.content.replace(/[\#\*\_]/g, '').slice(0, 280) + '...';
+      }
+
+      const recentCont = document.getElementById('recentOrdersContainer');
+      const prio = data.priority_recommendations;
+      const topList = (prio && prio.top_opportunities) ? prio.top_opportunities.slice(0, 4) : [];
+
+      const colorStyles = [
+        { bg: 'bg-blue-600', text: 'text-white' },
+        { bg: 'bg-slate-800 dark:bg-slate-700', text: 'text-white' },
+        { bg: 'bg-blue-100 dark:bg-blue-950', text: 'text-blue-700 dark:text-blue-300' },
+        { bg: 'bg-slate-200 dark:bg-slate-800', text: 'text-slate-700 dark:text-slate-300' }
+      ];
+
+      recentCont.innerHTML = topList.map((opp, idx) => {
+        const style = colorStyles[idx % colorStyles.length];
+        return `
+          <div onclick="openStudioModal('top5')" class="py-2.5 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-700/50 cursor-pointer transition px-1 rounded-xl">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-lg ${style.bg} ${style.text} font-black flex items-center justify-center text-xs shadow-xs">
+                #${opp.rank}
+              </div>
+              <div>
+                <h4 class="text-xs font-black text-slate-800 dark:text-slate-100 leading-tight">${opp.customer_name}</h4>
+                <span class="text-[10px] text-slate-400 dark:text-slate-400 font-semibold">${opp.effective_stage} • ${fmtVND(opp.deal_value)}</span>
+              </div>
+            </div>
+            <div class="text-right">
+              <span class="text-xs font-mono font-black text-slate-900 dark:text-slate-100">${opp.expected_close_date || '2026-11-25'}</span>
+              <span class="text-[10px] text-blue-600 dark:text-blue-400 font-bold block">${opp.priority_score}đ ưu tiên</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Modal chi tiết
+    function openStudioModal(viewType) {
+      if (!currentAnalysisResult) {
+        alert('Chưa có dữ liệu phân tích. Vui lòng tải tệp hoặc nhập link Google Sheets trước!');
+        return;
+      }
+      const data = currentAnalysisResult;
+      const modal = document.getElementById('studioDetailModal');
+      const mTitle = document.getElementById('modalDetailTitle');
+      const mSub = document.getElementById('modalDetailSubtitle');
+      const mBody = document.getElementById('modalDetailBody');
+
+      if (viewType === 'pipeline') {
+        mTitle.textContent = 'Hồ Sơ Toàn Bộ Cơ Hội Còn Mở (Open Pipeline)';
+        mSub.textContent = `Tổng cộng: ${data.company_kpis.total_open_opportunities} cơ hội hợp lệ sau khi gộp trùng`;
+        mBody.innerHTML = `
+          <div class="space-y-3">
+            <div class="p-3 bg-blue-50/70 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800 rounded-2xl text-xs text-slate-800 dark:text-slate-200 font-semibold">
+              Các cơ hội đã ghi nhận đơn hàng (Closed Won) hoặc đã hủy (Closed Lost) đã được tách bạch hoàn toàn khỏi pipeline mở.
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr class="bg-slate-50 dark:bg-slate-900 text-slate-500 uppercase text-[10px] border-b dark:border-slate-700">
+                    <th class="p-2">Mã CH</th><th>Khách Hàng</th><th>NVKD</th><th>Giai Đoạn</th><th>Trọng Số</th><th class="text-right p-2">Giá Trị Mở</th><th class="text-right p-2">Dự Kiến (Ước Tính)</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y dark:divide-slate-700">
+                  ${data.opportunities_clean.filter(o => o.open_pipeline_value > 0).map(o => `
+                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/50">
+                      <td class="p-2 font-mono font-bold text-blue-700 dark:text-blue-400">${o.opp_id}</td>
+                      <td class="p-2 font-bold">${o.customer_name} <span class="text-slate-400 block font-normal text-[10px]">${o.project_name}</span></td>
+                      <td class="p-2">${o.rep_id}</td>
+                      <td class="p-2"><span class="px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 font-bold">${o.effective_stage}</span></td>
+                      <td class="p-2 font-mono">${((o.rule_weight || o.stage_weight || 0) * 100).toFixed(0)}%</td>
+                      <td class="p-2 text-right font-bold">${fmtVND(o.open_pipeline_value)}</td>
+                      <td class="p-2 text-right font-black text-blue-600 dark:text-blue-400">${fmtVND(o.weighted_forecast_value)}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `;
+      } else if (viewType === 'wonOrders') {
+        mTitle.textContent = 'Doanh Số Thực Tế Đã Ghi Nhận (Closed Won & Orders)';
+        mSub.textContent = `Tổng doanh số chốt: ${fmtVND(data.company_kpis.total_recorded_revenue)}`;
+        mBody.innerHTML = `
+          <div class="space-y-3">
+            <div class="p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl text-xs text-slate-700 dark:text-slate-300 font-semibold">
+              Doanh số thực tế chỉ được ghi nhận từ bảng Đơn hàng và các cơ hội đã chuyển trạng thái Closed Won.
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr class="bg-slate-50 dark:bg-slate-900 text-slate-500 uppercase text-[10px] border-b dark:border-slate-700">
+                    <th class="p-2">Mã CH</th><th>Khách Hàng</th><th>NVKD</th><th>Trạng Thái</th><th class="text-right p-2">Doanh Số Thực Tế</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y dark:divide-slate-700">
+                  ${data.opportunities_clean.filter(o => o.actual_recorded_revenue > 0 || o.effective_stage === 'Closed Won').map(o => `
+                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/50">
+                      <td class="p-2 font-mono font-bold text-blue-700 dark:text-blue-400">${o.opp_id}</td>
+                      <td class="p-2 font-bold">${o.customer_name}</td>
+                      <td class="p-2">${o.rep_id}</td>
+                      <td class="p-2"><span class="px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 font-bold">Closed Won</span></td>
+                      <td class="p-2 text-right font-black text-slate-900 dark:text-white">${fmtVND(o.actual_recorded_revenue || o.deal_value)}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `;
+      } else if (viewType === 'forecast') {
+        mTitle.textContent = 'Chi Tiết Doanh Số Dự Kiến Ước Tính Theo Trọng Số';
+        mSub.textContent = `Tổng dự kiến: ${fmtVND(data.company_kpis.total_weighted_forecast_estimate || data.company_kpis.total_weighted_forecast_value)}`;
+        mBody.innerHTML = `
+          <div class="space-y-3">
+            <div class="p-3 bg-blue-50/70 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800 rounded-2xl text-xs text-slate-800 dark:text-slate-200 font-semibold">
+              Giá trị dự kiến được tính toán theo quy tắc trọng số giai đoạn (Lead: 10%, Qualification: 25%, Proposal: 50%, Negotiation: 75%, Closing: 90%).
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 text-center text-xs">
+              <div class="p-2.5 bg-slate-50 dark:bg-slate-900 rounded-xl border dark:border-slate-700"><span class="text-slate-400 block text-[10px]">Lead</span><strong class="text-slate-800 dark:text-white">10%</strong></div>
+              <div class="p-2.5 bg-slate-50 dark:bg-slate-900 rounded-xl border dark:border-slate-700"><span class="text-slate-400 block text-[10px]">Qualification</span><strong class="text-slate-800 dark:text-white">25%</strong></div>
+              <div class="p-2.5 bg-slate-50 dark:bg-slate-900 rounded-xl border dark:border-slate-700"><span class="text-slate-400 block text-[10px]">Proposal</span><strong class="text-slate-800 dark:text-white">50%</strong></div>
+              <div class="p-2.5 bg-slate-50 dark:bg-slate-900 rounded-xl border dark:border-slate-700"><span class="text-slate-400 block text-[10px]">Negotiation</span><strong class="text-slate-800 dark:text-white">75%</strong></div>
+              <div class="p-2.5 bg-slate-50 dark:bg-slate-900 rounded-xl border dark:border-slate-700"><span class="text-slate-400 block text-[10px]">Closing</span><strong class="text-slate-800 dark:text-white">90%</strong></div>
+            </div>
+          </div>
+        `;
+      } else if (viewType === 'kpiReps') {
+        mTitle.textContent = 'Báo Cáo Mức Hoàn Thành Mục Tiêu Nhân Viên Kinh Doanh';
+        mSub.textContent = 'Đối chiếu chỉ tiêu, doanh số chốt thực tế và dự kiến ước tính';
+        mBody.innerHTML = `
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400 uppercase text-[10px] border-b dark:border-slate-700">
+                  <th class="p-2">Mã NV</th><th>Họ Tên</th><th class="text-right p-2">Mục Tiêu</th><th class="text-right p-2 font-bold">Doanh Số Chốt</th><th class="text-center p-2">% Thực Tế</th><th class="text-right p-2">Dự Kiến</th><th class="text-center p-2">% Dự Kiến</th><th class="p-2">Tình Trạng</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y dark:divide-slate-700">
+                ${data.rep_summary.map(r => `
+                  <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/50">
+                    <td class="p-2 font-mono font-bold text-blue-700 dark:text-blue-400">${r.rep_id}</td>
+                    <td class="p-2 font-bold">${r.rep_name}</td>
+                    <td class="p-2 text-right">${fmtVND(r.kpi_target)}</td>
+                    <td class="p-2 text-right font-black text-slate-900 dark:text-white">${fmtVND(r.recorded_revenue)}</td>
+                    <td class="p-2 text-center font-bold text-blue-600 dark:text-blue-400">${r.actual_attainment_pct}%</td>
+                    <td class="p-2 text-right font-bold text-slate-700 dark:text-slate-300">${fmtVND(r.weighted_forecast_value)}</td>
+                    <td class="p-2 text-center font-black text-slate-800 dark:text-white">${r.projected_attainment_pct}%</td>
+                    <td class="p-2"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">${r.kpi_status}</span></td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        `;
+      } else if (viewType === 'anomalies') {
+        mTitle.textContent = 'Kiểm Duyệt Rủi Ro & Bất Thường (Con Người Quyết Định)';
+        mSub.textContent = `Phát hiện: ${data.anomalies.length} trường hợp cần xác minh`;
+        mBody.innerHTML = `
+          <div class="space-y-4">
+            <div class="flex justify-between items-center bg-slate-50 dark:bg-slate-900 p-3 rounded-2xl border dark:border-slate-700">
+              <span class="text-xs text-slate-600 dark:text-slate-300 font-semibold">Chọn quyết định xử lý và bấm áp dụng để AI Agent tính toán lại:</span>
+              <button onclick="applyOverridesAndRerun()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs shadow-xs transition">
+                Áp Dụng Quyết Định &amp; Chạy Lại
+              </button>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr class="bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400 uppercase text-[10px] border-b dark:border-slate-700">
+                    <th class="p-2">Mã CH</th><th>Khách Hàng</th><th>Phát Hiện Của AI Agent</th><th class="p-2 bg-blue-50/60 dark:bg-blue-950/60 text-blue-900 dark:text-blue-200 font-bold">Quyết Định Của Quản Lý</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y dark:divide-slate-700">
+                  ${data.anomalies.map(a => `
+                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/50 align-top">
+                      <td class="p-2 font-mono font-bold text-blue-700 dark:text-blue-400">${a.opp_id}</td>
+                      <td class="p-2 font-bold">${a.customer_name} <span class="text-slate-400 block font-normal text-[10px]">${fmtVND(a.deal_value)}</span></td>
+                      <td class="p-2 max-w-sm"><strong class="text-slate-900 dark:text-white block">${a.title}</strong><p class="text-slate-500 dark:text-slate-400">${a.description}</p></td>
+                      <td class="p-2 bg-blue-50/20 dark:bg-blue-950/20 min-w-[200px]">
+                        <select onchange="onHumanOverrideChange('${a.opp_id}', this.value)" class="w-full p-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500 text-slate-800 dark:text-slate-100">
+                          <option value="">-- Theo đề xuất của AI --</option>
+                          <option value="SET_CLOSED_LOST">Chuyển Closed Lost (Mất khách)</option>
+                          <option value="SET_CLOSED_WON">Chuyển Closed Won (Đã ký kết)</option>
+                          <option value="VERIFY_AND_KEEP_OPEN">Đã xác minh &amp; Giữ mở</option>
+                        </select>
+                      </td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `;
+      } else if (viewType === 'top5') {
+        const prio = data.priority_recommendations;
+        const validCount = prio.actual_valid_count !== undefined ? prio.actual_valid_count : (prio.top_opportunities ? prio.top_opportunities.length : 0);
+        mTitle.textContent = 'Danh Sách Cơ Hội Cần Ưu Tiên Xử Lý Trong Tuần Tiếp Theo';
+        mSub.textContent = `Thực tế hợp lệ: ${validCount} cơ hội (Quy tắc xếp hạng 4 tiêu chí)`;
+        mBody.innerHTML = `
+          <div class="space-y-4">
+            <div class="p-3 bg-blue-50/70 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800 rounded-2xl text-xs text-slate-800 dark:text-slate-200 font-semibold">
+              ${prio.boundary_explanation}
+            </div>
+            <div class="space-y-3">
+              ${prio.top_opportunities.map(opp => `
+                <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 space-y-2">
+                  <div class="flex justify-between items-center border-b dark:border-slate-700 pb-2">
+                    <div class="flex items-center gap-2">
+                      <span class="w-7 h-7 rounded-lg bg-blue-600 text-white font-black flex items-center justify-center text-xs">#${opp.rank}</span>
+                      <strong class="text-sm text-slate-900 dark:text-white">${opp.opp_id} — ${opp.customer_name}</strong>
+                      <span class="bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300 text-[10px] font-bold px-2 py-0.5 rounded-full">${opp.effective_stage}</span>
+                    </div>
+                    <div class="text-right">
+                      <span class="text-xs font-black text-blue-600 dark:text-blue-400">${fmtVND(opp.weighted_forecast_value)}</span>
+                      <span class="text-[10px] text-slate-400 block">Điểm ưu tiên: ${opp.priority_score}đ</span>
+                    </div>
+                  </div>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                    <div>
+                      <span class="text-slate-400 font-bold block">Căn cứ lựa chọn:</span>
+                      <p class="text-slate-700 dark:text-slate-300">${opp.selection_rationale}</p>
+                    </div>
+                    <div class="bg-white dark:bg-slate-800 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700">
+                      <span class="text-blue-700 dark:text-blue-300 font-bold block">Việc cần làm tuần tới:</span>
+                      <p class="text-slate-800 dark:text-slate-200 font-semibold">${opp.recommended_action_next_week}</p>
+                    </div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      } else if (viewType === 'audit') {
+        mTitle.textContent = 'Nhật Ký Thực Thi & Truy Vết Quy Tắc (Audit Trail Logs)';
+        mSub.textContent = `Tổng số bước thực thi tự động: ${data.audit_logs.length}`;
+        mBody.innerHTML = `
+          <div class="space-y-2.5">
+            ${data.audit_logs.map((l, i) => `
+              <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs space-y-1">
+                <div class="flex justify-between font-bold text-slate-800 dark:text-slate-200">
+                  <span>#${i+1} [${l.step}] ${l.skill_or_tool}</span>
+                  <span class="text-slate-400 font-mono text-[10px]">${l.timestamp}</span>
+                </div>
+                <div class="text-blue-700 dark:text-blue-300 font-semibold">${l.action}</div>
+                <div class="text-slate-600 dark:text-slate-400">Quy tắc: ${l.rule_applied}</div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      } else if (viewType === 'aiRepairs') {
+        const repairs = data.ai_repairs_log || [];
+        mTitle.textContent = 'Nhật Ký Chi Tiết Các Lỗi Đã Được AI Tự Động Chỉnh Sửa';
+        mSub.textContent = `Tổng cộng: ${repairs.length} mục dữ liệu và cấu trúc đã được AI làm sạch & chuẩn hóa`;
+        mBody.innerHTML = `
+          <div class="space-y-4">
+            <div class="p-3.5 bg-blue-50/70 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800 rounded-2xl text-xs text-slate-800 dark:text-slate-200 font-semibold flex items-center justify-between gap-2">
+              <span>AI Agent đã tự động chuẩn hóa tên cột, làm sạch số tiền, gộp dòng trùng lặp, gia hạn ngày dự kiến chốt và bổ sung thông tin xác nhận bị thiếu.</span>
+              <a href="/api/export/cleaned.csv" download="du_lieu_da_sua_boi_AI.csv" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shrink-0">
+                Tải File Đã Sửa (.csv)
+              </a>
+            </div>
+            <div class="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-700">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr class="bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 uppercase text-[10px] border-b dark:border-slate-700">
+                    <th class="p-2.5">Mã CH</th>
+                    <th class="p-2.5">Khách Hàng</th>
+                    <th class="p-2.5">Trường Bị Lỗi</th>
+                    <th class="p-2.5 text-slate-500">Trước Khi Sửa (Lỗi)</th>
+                    <th class="p-2.5 text-blue-700 dark:text-blue-400">Sau Khi AI Sửa</th>
+                    <th class="p-2.5">Căn Cứ Xử Lý Của AI</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
+                  ${repairs.map(r => `
+                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                      <td class="p-2.5 font-mono font-bold text-blue-700 dark:text-blue-400 whitespace-nowrap">${r.opp_id}</td>
+                      <td class="p-2.5 font-bold">${r.customer_name}</td>
+                      <td class="p-2.5 font-mono text-[11px] font-semibold">${r.field_repaired}</td>
+                      <td class="p-2.5 text-slate-400 line-through font-mono text-[11px]">${r.before_value}</td>
+                      <td class="p-2.5 text-blue-700 dark:text-blue-300 font-black font-mono text-[11px]">${r.after_value}</td>
+                      <td class="p-2.5 text-slate-600 dark:text-slate-300 text-[11px]">${r.repair_reason}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `;
+      } else if (viewType === 'geminiDetail') {
+        const eb = data.ai_executive_brief || data.executive_brief || { provider_used: 'AI Engine', content: 'Chưa có nhận xét.' };
+        mTitle.textContent = 'Toàn Văn Bản Nhận Xét Điều Hành (Google Gemini API)';
+        mSub.textContent = `Mô hình: ${eb.provider_used}`;
+        mBody.innerHTML = `
+          <div class="p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl border dark:border-slate-700 text-xs text-slate-800 dark:text-slate-200 whitespace-pre-line leading-relaxed font-mono">
+            ${eb.content}
+          </div>
+        `;
+      } else if (viewType === 'selfTest') {
+        mTitle.textContent = 'Kết Quả Tự Kiểm Thử 3 Kịch Bản (Self-Test Runner)';
+        mSub.textContent = 'Kiểm thử Trường hợp thông thường, Thiếu dữ liệu & Ranh giới quy tắc';
+        mBody.innerHTML = `
+          <div class="space-y-3">
+            <div class="flex justify-between items-center">
+              <span class="text-xs font-semibold text-slate-600 dark:text-slate-300">Bấm để kích hoạt kiểm thử toàn diện:</span>
+              <button onclick="runSystemSelfTest()" class="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition">
+                Chạy Lại Tự Kiểm Thử
+              </button>
+            </div>
+            <div id="selfTestResultBox" class="space-y-2 text-xs">
+              <p class="text-slate-400">Đang tải trạng thái tự kiểm thử gần nhất...</p>
+            </div>
+          </div>
+        `;
+        runSystemSelfTest();
+      } else if (viewType === 'task1Doc') {
+        mTitle.textContent = 'Bản Thiết Kế Quy Trình & Kiến Trúc AI Agent (Task 1)';
+        mSub.textContent = 'Mục tiêu – Đầu vào – Quy trình – Đầu ra & Điểm chạm Con người';
+        fetch('/api/task1-doc')
+          .then(r => r.json())
+          .then(d => {
+            const md = d.markdown || d.content || '# Chưa tìm thấy tài liệu';
+            mBody.innerHTML = `
+              <div class="p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl border dark:border-slate-700 text-xs text-slate-800 dark:text-slate-200 whitespace-pre-line leading-relaxed font-sans">
+                ${md}
+              </div>
+            `;
+          })
+          .catch(() => {
+            mBody.innerHTML = '<p class="text-xs text-slate-500">Không thể tải tài liệu Task 1.</p>';
+          });
+      } else if (viewType === 'architecture') {
+        mTitle.textContent = 'Sơ Đồ Kiến Trúc End-to-End Data Analytics AI Agent (4 Tầng)';
+        mSub.textContent = 'Mô hình tổng thể: Tiếp nhận đa nguồn → Thẩm định cách ly lỗi → Vòng lặp Agent → Xuất bản';
+        mBody.innerHTML = `
+          <div class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+              <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex flex-col justify-between space-y-3">
+                <div class="space-y-1.5">
+                  <div class="inline-block px-2 py-0.5 rounded-md bg-blue-600 text-white font-extrabold text-[10px]">TẦNG 1</div>
+                  <h4 class="font-black text-slate-900 dark:text-white text-sm">DATA INGESTION</h4>
+                  <p class="text-[11px] text-slate-600 dark:text-slate-400">Tiếp nhận &amp; Định tuyến đa nguồn</p>
+                </div>
+                <div class="space-y-1 text-[11px] text-slate-700 dark:text-slate-300 font-medium">
+                  <div class="p-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                    <strong>• Unified Gateway:</strong> UI Upload (CSV, Excel, ZIP) + Google Sheets
+                  </div>
+                  <div class="p-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                    <strong>• External Ingest:</strong> Webhook API tiếp nhận tự động
+                  </div>
+                </div>
+              </div>
+
+              <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex flex-col justify-between space-y-3">
+                <div class="space-y-1.5">
+                  <div class="inline-block px-2 py-0.5 rounded-md bg-blue-600 text-white font-extrabold text-[10px]">TẦNG 2</div>
+                  <h4 class="font-black text-slate-900 dark:text-white text-sm">VALIDATION &amp; CLEAN</h4>
+                  <p class="text-[11px] text-slate-600 dark:text-slate-400">Thẩm định &amp; Cách ly lỗi</p>
+                </div>
+                <div class="space-y-1 text-[11px] text-slate-700 dark:text-slate-300 font-medium">
+                  <div class="p-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                    <strong>• Quarantine Zone:</strong> Cách ly bản ghi lỗi (data_quarantine.csv)
+                  </div>
+                  <div class="p-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                    <strong>• Cleaned Dataset:</strong> Lưu bộ dữ liệu sạch vào Sandbox
+                  </div>
+                </div>
+              </div>
+
+              <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex flex-col justify-between space-y-3">
+                <div class="space-y-1.5">
+                  <div class="inline-block px-2 py-0.5 rounded-md bg-blue-600 text-white font-extrabold text-[10px]">TẦNG 3</div>
+                  <h4 class="font-black text-slate-900 dark:text-white text-sm">REASONING LOOP</h4>
+                  <p class="text-[11px] text-slate-600 dark:text-slate-400">Tư duy &amp; Thực thi phân tích AI</p>
+                </div>
+                <div class="space-y-1 text-[11px] text-slate-700 dark:text-slate-300 font-medium">
+                  <div class="p-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                    <strong>• LLM Planner:</strong> Google Gemini Live AI tổng hợp Insight
+                  </div>
+                  <div class="p-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                    <strong>• Self-Correction:</strong> Tự kiểm tra &amp; sửa lỗi logic an toàn
+                  </div>
+                </div>
+              </div>
+
+              <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex flex-col justify-between space-y-3">
+                <div class="space-y-1.5">
+                  <div class="inline-block px-2 py-0.5 rounded-md bg-blue-600 text-white font-extrabold text-[10px]">TẦNG 4</div>
+                  <h4 class="font-black text-slate-900 dark:text-white text-sm">OUTPUT &amp; DELIVERY</h4>
+                  <p class="text-[11px] text-slate-600 dark:text-slate-400">Trình bày trực tiếp &amp; Xuất tệp</p>
+                </div>
+                <div class="space-y-1 text-[11px] text-slate-700 dark:text-slate-300 font-medium">
+                  <div class="p-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                    <strong>• Dashboard UI:</strong> Biểu đồ phân tích, KPI 10 sales
+                  </div>
+                  <div class="p-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                    <strong>• Export Files:</strong> Excel (.xlsx), CSV, Webhook response
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 space-y-3">
+              <h4 class="text-xs font-black text-slate-800 dark:text-white uppercase tracking-wider">
+                Tải Tệp Kết Quả &amp; Bản Ghi Cách Ly (Quarantine Zone):
+              </h4>
+              <div class="flex flex-wrap gap-2 text-xs">
+                <a href="/api/export/quarantine.csv" download="data_quarantine.csv" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-xl transition shadow-xs">
+                  Tải data_quarantine.csv (Bản ghi lỗi cách ly)
+                </a>
+                <a href="/api/export/cleaned.csv" download="cleaned_data.csv" class="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition shadow-xs">
+                  Tải cleaned_data.csv (Bản ghi sạch)
+                </a>
+                <a href="/api/download-sample/scenario_1_normal?format=xlsx" class="px-3.5 py-2 bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold rounded-xl transition shadow-xs">
+                  Tải BinhMinh_Scenario1_Normal.xlsx
+                </a>
+              </div>
+            </div>
+
+            <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 space-y-2 text-xs">
+              <div class="flex items-center justify-between">
+                <strong class="text-slate-900 dark:text-white font-black text-sm">Webhook Endpoint Tiếp Nhận Bên Ngoài (Tầng 1):</strong>
+                <span class="px-2 py-0.5 bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300 font-bold rounded-full text-[10px]">Active</span>
+              </div>
+              <p class="text-slate-600 dark:text-slate-400">
+                Hệ thống POS, CRM hoặc luồng n8n/Zapier có thể đẩy tệp trực tiếp vào endpoint này:
+              </p>
+              <div class="p-3 bg-slate-900 text-slate-100 rounded-xl font-mono text-[11px] overflow-x-auto">
+                curl -X POST "${window.location.origin}/api/webhook/ingest" \\<br/>
+                &nbsp;&nbsp;-F "partner_id=POS_SYSTEM_01" \\<br/>
+                &nbsp;&nbsp;-F "files=@BinhMinh_Scenario1_Normal.xlsx"
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeStudioModal() {
+      const modal = document.getElementById('studioDetailModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function openConfigModal() {
+      document.getElementById('configModal').classList.remove('hidden');
+      document.getElementById('configModal').classList.add('flex');
+    }
+
+    function closeConfigModal() {
+      document.getElementById('configModal').classList.add('hidden');
+      document.getElementById('configModal').classList.remove('flex');
+    }
+
+    function applyConfigAndRun() {
+      closeConfigModal();
+      triggerRunAgent(false);
+    }
+
+    function onHumanOverrideChange(oppId, action) {
+      if (!action) {
+        delete humanOverridesState[oppId];
+      } else {
+        humanOverridesState[oppId] = { action, note: 'Quản lý phê duyệt tại giao diện Studio' };
+      }
+    }
+
+    async function applyOverridesAndRerun() {
+      closeStudioModal();
+      await triggerRunAgent(true);
+      alert('Đã cập nhật quyết định của Quản lý và AI Agent đã tính toán lại toàn bộ kết quả!');
+    }
+
+    async function runSystemSelfTest() {
+      const box = document.getElementById('selfTestResultBox');
+      if (!box) return;
+      box.innerHTML = '<p class="text-xs text-blue-600 font-bold animate-pulse">Đang thực thi 3 kịch bản tự kiểm thử...</p>';
+      try {
+        const res = await fetch('/api/self-test');
+        const data = await res.json();
+        const suites = data.suites || [];
+        const allPassed = suites.every(s => s.all_passed);
+        
+        let html = `
+          <div class="p-3 bg-blue-50/70 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800 text-slate-800 dark:text-slate-200 rounded-2xl text-xs space-y-1 mb-3">
+            <span class="font-extrabold text-sm">${allPassed ? '100% CÁC KIỂM THỬ ĐỀU ĐẠT (ALL PASS)' : 'CÓ ĐIỂM CẦN LƯU Ý'}</span>
+            <p>Hệ thống AI Agent tự động chạy trực tiếp trên 3 bộ dữ liệu: Thông thường, Thiếu dữ liệu, và Ranh giới quy tắc.</p>
+          </div>
+        `;
+
+        suites.forEach(s => {
+          html += `
+            <div class="p-3 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-2 mb-2">
+              <div class="flex items-center justify-between border-b dark:border-slate-700 pb-1.5">
+                <strong class="text-slate-900 dark:text-white">${s.scenario_title || s.scenario_name || s.scenario_id}</strong>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300">
+                  ${s.all_passed ? 'ĐẠT (PASS)' : 'CẦN XEM XÉT'}
+                </span>
+              </div>
+              <div class="space-y-1.5 pt-1">
+                ${(s.checks || []).map(c => `
+                  <div class="p-2 bg-white dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 flex items-start justify-between gap-2 text-xs">
+                    <div>
+                      <span class="font-bold text-slate-800 dark:text-slate-100 block">${c.check_name}</span>
+                      <span class="text-[10px] text-slate-500 dark:text-slate-400 block">Kỳ vọng: ${c.expected}</span>
+                      <span class="text-[10px] text-blue-600 dark:text-blue-400 block">Thực tế: ${c.actual}</span>
+                    </div>
+                    <span class="px-2 py-0.5 rounded font-black text-[10px] shrink-0 bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700">
+                      ${c.passed ? 'PASS' : 'FAIL'}
+                    </span>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          `;
+        });
+
+        box.innerHTML = html;
+      } catch (err) {
+        box.innerHTML = `<p class="text-xs text-slate-600 font-bold">Lỗi kiểm thử: ${err.message}</p>`;
+      }
+    }
+
+    // Tự động khởi tạo Theme & Lời chào Trang bìa khi tải trang
+    window.addEventListener('DOMContentLoaded', () => {
+      initTheme();
+      initCoverGreeting();
+      const gsheetInput = document.getElementById('portalGsheetUrl');
+      if (gsheetInput) {
+        gsheetInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            executeStartPipeline();
+          }
+        });
+      }
+    });
+  </script>
+
+</body>
+</html>
