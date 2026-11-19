@@ -1,4 +1,5 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "functions": {
     "api/index.py": {
       "includeFiles": "{static/**,sample_data/**,docs/**,Duydudi_AI_Agent_15_Slides.pptx}"
@@ -7,7 +8,7 @@
   "rewrites": [
     {
       "source": "/(.*)",
-      "destination": "/api/index.py"
+      "destination": "/api/index?__vpath=$1"
     }
   ]
 }

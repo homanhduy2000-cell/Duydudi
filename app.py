@@ -43,10 +43,51 @@ if not os.environ.get("VERCEL"):
     except Exception:
         pass
 
+from urllib.parse import parse_qs, urlencode
+
+
+class VercelPathFixMiddleware:
+    """
+    Middleware khôi phục đường dẫn gốc trên Vercel Serverless:
+    Khi vercel.json dùng rewrites trỏ về '/api/index?__vpath=$1',
+    Vercel có thể truyền scope['path'] = '/api/index' hoặc '/api/index.py' khiến FastAPI trả về {"detail":"Not Found"}.
+    Middleware này khôi phục chính xác đường dẫn gốc ('/', '/slides', '/api/...') và giữ nguyên mọi query param khác.
+    """
+    def __init__(self, asgi_app):
+        self.asgi_app = asgi_app
+
+    async def __call__(self, scope, receive, send):
+        if scope.get("type") == "http":
+            path = scope.get("path", "/")
+            qs_bytes = scope.get("query_string", b"")
+            qs_str = qs_bytes.decode("utf-8", errors="ignore") if qs_bytes else ""
+            params = parse_qs(qs_str, keep_blank_values=True)
+            vpath_vals = params.pop("__vpath", None)
+
+            if path in ("/api/index", "/api/index.py", "/api/index/"):
+                if vpath_vals is not None and len(vpath_vals) > 0:
+                    raw_target = vpath_vals[0].strip()
+                    real_path = "/" + raw_target.lstrip("/") if raw_target else "/"
+                else:
+                    real_path = "/"
+                scope = dict(scope)
+                scope["path"] = real_path
+                scope["raw_path"] = real_path.encode("utf-8")
+                scope["query_string"] = urlencode(params, doseq=True).encode("utf-8")
+            elif vpath_vals is not None:
+                # Nếu Vercel đã giữ sẵn path gốc, chỉ cần gỡ tham số nội bộ __vpath
+                scope = dict(scope)
+                scope["query_string"] = urlencode(params, doseq=True).encode("utf-8")
+
+        await self.asgi_app(scope, receive, send)
+
+
 app = FastAPI(
     title="Duydudi - AI Agent Phân Tích Tiến Độ Cơ Hội & Dự Kiến Doanh Số (AI301)",
-    version="1.0.0"
+    version="1.0.0",
+    redirect_slashes=False
 )
+app.add_middleware(VercelPathFixMiddleware)
 
 if os.path.exists(STATIC_DIR):
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
@@ -85,6 +126,8 @@ class GSheetAnalyzeRequest(BaseModel):
 
 
 @app.get("/", response_class=HTMLResponse)
+@app.get("/api/index", response_class=HTMLResponse)
+@app.get("/api/index.py", response_class=HTMLResponse)
 async def serve_index():
     index_path = os.path.join(STATIC_DIR, "index.html")
     with open(index_path, "r", encoding="utf-8") as f:
