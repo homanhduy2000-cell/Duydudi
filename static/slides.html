@@ -9,37 +9,63 @@
   <style>
     body {
       font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #0e0b16;
+      background-image:
+        radial-gradient(at 10% 15%, rgba(30, 215, 181, 0.22) 0px, transparent 50%),
+        radial-gradient(at 88% 12%, rgba(137, 75, 119, 0.38) 0px, transparent 52%),
+        radial-gradient(at 85% 85%, rgba(171, 189, 255, 0.22) 0px, transparent 50%),
+        radial-gradient(at 15% 82%, rgba(240, 249, 167, 0.14) 0px, transparent 48%);
+      background-attachment: fixed;
     }
     .font-mono {
       font-family: 'JetBrains Mono', monospace;
     }
+    @keyframes slideSmoothIn {
+      0% { opacity: 0; transform: translateY(14px) scale(0.985); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
     .slide-card {
-      transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+      box-shadow: 0 24px 60px -15px rgba(137, 75, 119, 0.35), 0 0 0 1px rgba(171, 189, 255, 0.2);
+    }
+    .slide-animate {
+      animation: slideSmoothIn 0.38s cubic-bezier(0.22, 1, 0.36, 1) forwards;
     }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between overflow-x-hidden selection:bg-pink-500 selection:text-white">
+<body class="text-slate-100 min-h-screen flex flex-col justify-between overflow-x-hidden selection:bg-[#1ed7b5] selection:text-slate-950">
 
   <!-- TOP NAVIGATION BAR -->
-  <header class="w-full bg-slate-900/90 backdrop-blur-md border-b border-slate-800 px-4 sm:px-8 py-3 flex items-center justify-between sticky top-0 z-50">
+  <header class="w-full bg-slate-900/80 backdrop-blur-xl border-b border-[#abbdff]/20 px-4 sm:px-8 py-3 flex items-center justify-between sticky top-0 z-50">
     <div class="flex items-center gap-3">
-      <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-pink-500 to-indigo-600 flex items-center justify-center font-black text-white text-sm shadow-md">
+      <div class="w-9 h-9 rounded-xl flex items-center justify-center font-black text-white text-sm shadow-md"
+           style="background: linear-gradient(135deg, #1ed7b5 0%, #894b77 100%);">
         DD
       </div>
       <div>
-        <h1 class="text-xs sm:text-sm font-black tracking-tight text-white">CÔNG TY CỦA DUYDUDI • BỘ 15 SLIDE THUYẾT TRÌNH</h1>
-        <p class="text-[11px] text-slate-400 font-medium">Cách thiết kế & xây dựng Duydudi AI Agent từ A-Z</p>
+        <div class="flex items-center gap-2">
+          <h1 class="text-xs sm:text-sm font-black tracking-tight text-white">CÔNG TY CỦA DUYDUDI • BỘ 15 SLIDE THUYẾT TRÌNH</h1>
+          <span class="hidden md:inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-800/80 border border-slate-700">
+            <span class="w-2 h-2 rounded-full" style="background:#1ed7b5"></span>
+            <span class="w-2 h-2 rounded-full" style="background:#f0f9a7"></span>
+            <span class="w-2 h-2 rounded-full" style="background:#894b77"></span>
+            <span class="w-2 h-2 rounded-full" style="background:#abbdff"></span>
+          </span>
+        </div>
+        <p class="text-[11px] text-[#abbdff] font-medium">Cách thiết kế & xây dựng Duydudi AI Agent từ A-Z</p>
       </div>
     </div>
 
     <div class="flex items-center gap-2 sm:gap-3">
-      <span id="slideCounterBadge" class="px-3 py-1 rounded-full bg-pink-500/20 border border-pink-500/40 text-pink-300 font-mono text-xs font-bold">
+      <span id="slideCounterBadge" class="px-3 py-1 rounded-full bg-[#894b77]/30 border border-[#894b77] text-[#f0f9a7] font-mono text-xs font-bold">
         Slide 1 / 15
       </span>
-      <a href="/api/export/slides.pptx" download="Duydudi_AI_Agent_15_Slides.pptx" class="px-4 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-xs font-extrabold shadow-md transition flex items-center gap-1.5">
+      <a href="/api/export/slides.pptx" download="Duydudi_AI_Agent_15_Slides.pptx"
+         class="px-4 py-1.5 rounded-xl text-slate-950 text-xs font-extrabold shadow-md transition hover:-translate-y-0.5 flex items-center gap-1.5"
+         style="background: linear-gradient(135deg, #1ed7b5 0%, #f0f9a7 100%);">
         <span>📥</span> <span>Xuất File .PPTX</span>
       </a>
-      <a href="/" class="px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold border border-slate-700 transition">
+      <a href="/" class="px-3.5 py-1.5 rounded-xl bg-slate-800/90 hover:bg-[#894b77] text-slate-100 text-xs font-bold border border-[#abbdff]/30 transition">
         🏠 Về Trang Chủ Web
       </a>
     </div>
@@ -47,26 +73,27 @@
 
   <!-- MAIN SLIDE VIEWPORT -->
   <main class="flex-1 flex items-center justify-center p-4 sm:p-8 lg:p-12">
-    <div class="w-full max-w-5xl bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-950/60 border border-slate-800 rounded-3xl shadow-2xl p-6 sm:p-12 min-h-[540px] flex flex-col justify-between relative overflow-hidden slide-card">
+    <div id="slideCardViewport" class="w-full max-w-5xl bg-slate-900/85 backdrop-blur-2xl rounded-3xl p-6 sm:p-12 min-h-[540px] flex flex-col justify-between relative overflow-hidden slide-card">
       
-      <!-- Ambient Glow -->
-      <div class="absolute -top-24 -right-24 w-80 h-80 bg-pink-500/10 rounded-full blur-3xl pointer-events-none"></div>
-      <div class="absolute -bottom-24 -left-24 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      <!-- Ambient 4-Color Glow -->
+      <div class="absolute -top-24 -right-24 w-80 h-80 bg-[#1ed7b5]/15 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="absolute top-1/3 -left-24 w-80 h-80 bg-[#894b77]/25 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="absolute -bottom-24 right-1/4 w-80 h-80 bg-[#abbdff]/15 rounded-full blur-3xl pointer-events-none"></div>
 
       <!-- Slide Header -->
-      <div class="space-y-3 z-10 border-b border-slate-800/80 pb-5">
+      <div class="space-y-3 z-10 border-b border-[#abbdff]/20 pb-5">
         <div class="flex items-center justify-between gap-2">
-          <span id="slideTag" class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-pink-500/15 border border-pink-500/30 text-pink-400 text-xs font-extrabold uppercase tracking-wider">
+          <span id="slideTag" class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#1ed7b5]/15 border border-[#1ed7b5]/40 text-[#1ed7b5] text-xs font-extrabold uppercase tracking-wider">
             SLIDE 01 • TỔNG QUAN DỰ ÁN
           </span>
-          <span id="slideModule" class="text-xs font-mono text-slate-400 font-semibold">
+          <span id="slideModule" class="text-xs font-mono text-[#abbdff] font-semibold">
             http://localhost:8000
           </span>
         </div>
         <h2 id="slideTitle" class="text-2xl sm:text-4xl font-black text-white tracking-tight leading-tight">
           Xây Dựng Duydudi AI Agent: Phân Tích Tiến Độ Cơ Hội & Dự Báo Doanh Số B2B
         </h2>
-        <p id="slideSubtitle" class="text-sm sm:text-base text-pink-300/90 font-semibold">
+        <p id="slideSubtitle" class="text-sm sm:text-base text-[#f0f9a7] font-semibold">
           Từ dữ liệu B2B phân mảnh đến quyết định điều hành chính xác với kiến trúc Deterministic Python + Google Gemini AI
         </p>
       </div>
@@ -77,10 +104,10 @@
       </div>
 
       <!-- Speaker Notes Box -->
-      <div class="z-10 bg-slate-950/80 border border-slate-800 rounded-2xl p-4 flex items-start gap-3">
+      <div class="z-10 bg-slate-950/80 border border-[#abbdff]/25 rounded-2xl p-4 flex items-start gap-3">
         <span class="text-lg shrink-0">🎙️</span>
         <div class="text-xs text-slate-300 leading-relaxed">
-          <strong class="text-amber-400 uppercase tracking-wider block mb-0.5">Gợi ý lời thuyết trình (Speaker Notes):</strong>
+          <strong class="text-[#f0f9a7] uppercase tracking-wider block mb-0.5">Gợi ý lời thuyết trình (Speaker Notes):</strong>
           <span id="slideNotes"></span>
         </div>
       </div>
@@ -89,12 +116,13 @@
   </main>
 
   <!-- BOTTOM CONTROLS & SLIDE DOTS -->
-  <footer class="w-full bg-slate-900 border-t border-slate-800 px-4 sm:px-8 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+  <footer class="w-full bg-slate-900/90 backdrop-blur-xl border-t border-[#abbdff]/20 px-4 sm:px-8 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
     <div class="flex items-center gap-2">
-      <button onclick="prevSlide()" id="btnPrev" class="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-40 text-white font-bold text-xs flex items-center gap-2 border border-slate-700 transition cursor-pointer">
+      <button onclick="prevSlide()" id="btnPrev" class="px-5 py-2.5 rounded-full bg-slate-800 hover:bg-slate-700 disabled:opacity-40 text-white font-bold text-xs flex items-center gap-2 border border-[#abbdff]/30 transition cursor-pointer">
         <span>&larr;</span> <span>Trang Trước</span>
       </button>
-      <button onclick="nextSlide()" id="btnNext" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 text-white font-black text-xs flex items-center gap-2 shadow-lg transition cursor-pointer">
+      <button onclick="nextSlide()" id="btnNext" class="px-6 py-2.5 rounded-full text-white font-black text-xs flex items-center gap-2 shadow-lg transition hover:-translate-y-0.5 cursor-pointer"
+              style="background: linear-gradient(135deg, #894b77 0%, #1ed7b5 100%);">
         <span>Trang Tiếp Theo</span> <span>&rarr;</span>
       </button>
     </div>
@@ -567,10 +595,17 @@
       document.getElementById('btnPrev').disabled = (currentIndex === 0);
       document.getElementById('btnNext').disabled = (currentIndex === SLIDES_DATA.length - 1);
 
+      const vp = document.getElementById('slideCardViewport');
+      if (vp) {
+        vp.classList.remove('slide-animate');
+        void vp.offsetWidth;
+        vp.classList.add('slide-animate');
+      }
+
       const dotsContainer = document.getElementById('slideDots');
       dotsContainer.innerHTML = SLIDES_DATA.map((item, i) => `
         <button onclick="renderSlide(${i})" title="Slide ${i + 1}"
-                class="h-2.5 rounded-full transition-all cursor-pointer ${i === currentIndex ? 'w-7 bg-pink-500' : 'w-2.5 bg-slate-700 hover:bg-slate-500'}">
+                class="h-2.5 rounded-full transition-all duration-300 cursor-pointer ${i === currentIndex ? 'w-8 bg-[#1ed7b5]' : 'w-2.5 bg-slate-700 hover:bg-[#abbdff]'}">
         </button>
       `).join('');
     }
